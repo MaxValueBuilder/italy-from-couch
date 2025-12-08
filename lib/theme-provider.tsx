@@ -67,22 +67,22 @@ export function useTheme() {
   const context = useContext(ThemeContext)
   if (!context) {
     // Fallback for when used outside provider
-    return {
+  return {
       theme: typeof document !== "undefined" 
         ? (document.documentElement.classList.contains("dark") ? "dark" : "light")
         : "light",
-      setTheme: (newTheme: "light" | "dark") => {
-        if (typeof document !== "undefined") {
-          const html = document.documentElement
-          if (newTheme === "dark") {
-            html.classList.add("dark")
-          } else {
-            html.classList.remove("dark")
-          }
-          localStorage.setItem("theme", newTheme)
+    setTheme: (newTheme: "light" | "dark") => {
+      if (typeof document !== "undefined") {
+        const html = document.documentElement
+        if (newTheme === "dark") {
+          html.classList.add("dark")
+        } else {
+          html.classList.remove("dark")
         }
-      },
-    }
+        localStorage.setItem("theme", newTheme)
+      }
+    },
+  }
   }
   return context
 }

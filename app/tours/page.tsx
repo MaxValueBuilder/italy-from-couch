@@ -6,6 +6,7 @@ import { Footer } from "@/components/footer"
 import { tours } from "@/lib/data/tours"
 import Link from "next/link"
 import { Clock, MapPin, User } from "lucide-react"
+import { LiveBadge } from "@/components/streaming/live-badge"
 
 export default function ToursPage() {
   const { t } = useI18n()
@@ -40,13 +41,19 @@ export default function ToursPage() {
                         alt={tour.title}
                         className="w-full h-full object-cover group-hover:brightness-110 transition-all duration-300"
                       />
+                      {/* Live Badge */}
+                      <div className="absolute top-3 left-3">
+                        <LiveBadge isLive={tour.isLive || false} />
+                      </div>
                     </div>
 
                     {/* Content */}
                     <div className="space-y-3 flex-1 flex flex-col">
-                      <h3 className="text-xl font-bold text-foreground group-hover:text-orange-600 transition-colors">
-                        {tour.title}
-                      </h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-xl font-bold text-foreground group-hover:text-orange-600 transition-colors">
+                          {tour.title}
+                        </h3>
+                      </div>
 
                       {/* Details */}
                       <div className="space-y-2 text-sm text-muted-foreground">

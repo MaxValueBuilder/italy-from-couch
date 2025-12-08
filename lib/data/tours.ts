@@ -7,6 +7,11 @@ export interface Tour {
   schedule: string
   highlights: string[]
   image: string
+  // Streaming fields
+  streamUrl?: string // YouTube Live URL or other streaming service URL
+  isLive?: boolean // Whether the tour is currently streaming
+  streamType?: "youtube" | "twitch" | "custom" // Type of streaming service
+  description?: string // Tour description
 }
 
 export const tours: Tour[] = [
@@ -19,6 +24,41 @@ export const tours: Tour[] = [
     schedule: "Daily at 10:00 AM & 4:00 PM (CET)",
     highlights: ["Colosseum", "Roman Forum", "Palatine Hill"],
     image: "/colosseum-rome-ancient-history.jpg",
+    streamUrl: "https://www.youtube.com/watch?v=Vp7j3J_C10s", // Will be added when streaming is set up
+    isLive: true,
+    streamType: "youtube",
+    description:
+      "Join us for a live walking tour through ancient Rome. Explore the Colosseum, Roman Forum, and Palatine Hill with a local guide. Experience the history and stories of the Eternal City in real-time from your couch.",
+  },
+  {
+    id: "rome-food",
+    title: "Rome: Trastevere Food & Culture",
+    city: "Rome",
+    duration: 90,
+    guide: "Elena",
+    schedule: "Daily at 12:00 PM (CET)",
+    highlights: ["Local trattorias", "Artisan shops", "Neighborhood stories"],
+    image: "/rome-trastevere-food-culture.jpg",
+    streamUrl: "https://www.youtube.com/watch?v=Vp7j3J_C10s", // Will be added when streaming is set up
+    isLive: true,
+    streamType: "youtube",
+    description:
+      "Discover authentic Roman cuisine and culture in Trastevere, one of Rome's most charming neighborhoods. Follow our guide through local trattorias, artisan shops, and hidden gems while learning about Roman food traditions.",
+  },
+  {
+    id: "rome-historic-center",
+    title: "Rome: Historic Center & Hidden Gems",
+    city: "Rome",
+    duration: 75,
+    guide: "Giovanni",
+    schedule: "Daily at 2:00 PM (CET)",
+    highlights: ["Pantheon", "Piazza Navona", "Hidden courtyards"],
+    image: "/colosseum-rome-ancient-history.jpg",
+    streamUrl: "https://www.youtube.com/watch?v=Vp7j3J_C10s", // Will be added when streaming is set up
+    isLive: true,
+    streamType: "youtube",
+    description:
+      "Explore Rome's historic center with a local guide. Visit the Pantheon, Piazza Navona, and discover hidden courtyards and secret spots that only locals know. Perfect for first-time visitors and those wanting to see beyond the tourist crowds.",
   },
   {
     id: "florence-art",
@@ -39,16 +79,6 @@ export const tours: Tour[] = [
     schedule: "Daily at 9:00 AM & 5:00 PM (CET)",
     highlights: ["Secret canals", "Local neighborhoods", "Authentic bacari"],
     image: "/venice-canals-hidden-secrets.jpg",
-  },
-  {
-    id: "rome-food",
-    title: "Rome: Trastevere Food & Culture",
-    city: "Rome",
-    duration: 90,
-    guide: "Elena",
-    schedule: "Daily at 12:00 PM (CET)",
-    highlights: ["Local trattorias", "Artisan shops", "Neighborhood stories"],
-    image: "/rome-trastevere-food-culture.jpg",
   },
   {
     id: "florence-sunset",
