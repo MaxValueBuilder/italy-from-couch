@@ -78,14 +78,6 @@ export function Header() {
             {theme.theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
           </button>
 
-          {/* Language toggle */}
-          <button
-            onClick={() => i18n.setLanguage(i18n.language === "en" ? "it" : "en")}
-            className="px-3 py-2 text-sm font-medium hover:bg-muted rounded-lg transition-colors text-muted-foreground hover:text-foreground"
-          >
-            {i18n.language === "en" ? "IT" : "EN"}
-          </button>
-
           {/* Join waitlist button - desktop */}
           <Button className="hidden sm:flex bg-orange-600 hover:bg-orange-700 text-white">
             {i18n.t("nav.joinWaitlist")}
