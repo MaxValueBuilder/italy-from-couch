@@ -8,7 +8,7 @@ export const translations = {
       blog: "Blog",
       faq: "FAQ",
       contact: "Contact",
-      joinWaitlist: "Join waitlist",
+      joinWaitlist: "Join Waitlist",
     },
     hero: {
       title: "Explore Italy live, without flights or hotels.",
