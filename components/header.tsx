@@ -4,6 +4,15 @@ import { useI18n } from "@/lib/i18n/context"
 import { useTheme } from "@/lib/theme-provider"
 import { useAuth } from "@/lib/auth/context"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { Menu, X, Sun, Moon, User, LogOut } from "lucide-react"
@@ -82,27 +91,53 @@ export function Header() {
 
           {/* Auth buttons - desktop */}
           {user ? (
-            <div className="hidden sm:flex items-center gap-3">
-              <Link href="/profile">
-                <Button variant="outline" size="sm" className="flex items-center gap-2">
-                  <User size={16} />
-                  {user.displayName || user.email?.split("@")[0]}
-                </Button>
-              </Link>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={signOut}
-                className="flex items-center gap-2"
-              >
-                <LogOut size={16} />
-                Sign Out
-              </Button>
+            <div className="hidden sm:flex items-center">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="rounded-full focus:outline-none focus:ring-2 focus:ring-orange-600 focus:ring-offset-2 transition-all hover:opacity-80">
+                    <Avatar className="h-9 w-9 border-2 border-border hover:border-orange-600 transition-colors">
+                      <AvatarImage src={user.photoURL || undefined} alt={user.displayName || user.email || "User"} />
+                      <AvatarFallback className="bg-orange-600 text-white font-semibold">
+                        {user.displayName
+                          ? user.displayName.charAt(0).toUpperCase()
+                          : user.email?.charAt(0).toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {user.displayName || "User"}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={signOut}
+                    className="cursor-pointer text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sign Out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           ) : (
             <div className="hidden sm:flex items-center gap-3">
               <Link href="/login">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" className="hover:text-orange-600">
                   Sign In
                 </Button>
               </Link>
@@ -141,6 +176,24 @@ export function Header() {
             ))}
             {user ? (
               <div className="space-y-2 mt-4">
+                <div className="flex items-center gap-3 px-3 py-2 border-b border-border pb-4">
+                  <Avatar className="h-10 w-10 border-2 border-border">
+                    <AvatarImage src={user.photoURL || undefined} alt={user.displayName || user.email || "User"} />
+                    <AvatarFallback className="bg-orange-600 text-white font-semibold">
+                      {user.displayName
+                        ? user.displayName.charAt(0).toUpperCase()
+                        : user.email?.charAt(0).toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <p className="text-sm font-medium text-foreground">
+                      {user.displayName || "User"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {user.email}
+                    </p>
+                  </div>
+                </div>
                 <Link
                   href="/profile"
                   className="block px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
@@ -148,7 +201,7 @@ export function Header() {
                 >
                   <div className="flex items-center gap-2">
                     <User size={16} />
-                    {user.displayName || user.email?.split("@")[0]}
+                    Profile
                   </div>
                 </Link>
                 <button
@@ -156,7 +209,7 @@ export function Header() {
                     signOut()
                     setIsMenuOpen(false)
                   }}
-                  className="w-full px-3 py-2 text-left text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors flex items-center gap-2"
+                  className="w-full px-3 py-2 text-left text-red-600 dark:text-red-400 hover:bg-muted rounded-lg transition-colors flex items-center gap-2"
                 >
                   <LogOut size={16} />
                   Sign Out
