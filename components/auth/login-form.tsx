@@ -44,14 +44,14 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleEmailLogin} className="space-y-4">
+    <form onSubmit={handleEmailLogin} className="space-y-6">
       {error && (
-        <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+        <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
           <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
         </div>
       )}
 
-      <div className="space-y-2">
+      <div className="space-y-4">
         <label className="text-sm font-semibold text-foreground">Email</label>
         <Input
           type="email"
@@ -60,10 +60,11 @@ export function LoginForm() {
           onChange={(e) => setEmail(e.target.value)}
           required
           disabled={loading}
+          className="py-6"
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-4">
         <label className="text-sm font-semibold text-foreground">Password</label>
         <Input
           type="password"
@@ -72,10 +73,11 @@ export function LoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           required
           disabled={loading}
+          className="py-6"
         />
       </div>
 
-      <Button type="submit" className="w-full bg-orange-600 hover:bg-orange-700 text-white" disabled={loading}>
+      <Button type="submit" className="w-full py-6 bg-orange-600 hover:bg-orange-700 text-white text-md" disabled={loading}>
         {loading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -86,19 +88,19 @@ export function LoginForm() {
         )}
       </Button>
 
-      <div className="relative">
+      <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t border-border" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+          <span className="bg-background px-3 text-muted-foreground">Or continue with</span>
         </div>
       </div>
 
       <Button
         type="button"
         variant="outline"
-        className="w-full"
+        className="w-full py-6 text-md"
         onClick={handleGoogleLogin}
         disabled={loading}
       >

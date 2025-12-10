@@ -91,7 +91,7 @@ export function Header() {
 
           {/* Auth buttons - desktop */}
           {user ? (
-            <div className="hidden sm:flex items-center">
+            <div className="hidden sm:flex items-center py-20">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="rounded-full focus:outline-none focus:ring-2 focus:ring-orange-600 focus:ring-offset-2 transition-all hover:opacity-80">
@@ -105,8 +105,8 @@ export function Header() {
                     </Avatar>
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel className="font-normal">
+                <DropdownMenuContent align="end" className="w-56 py-2 px-2">
+                  <DropdownMenuLabel className="font-normal py-4 px-2">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">
                         {user.displayName || "User"}
@@ -117,16 +117,16 @@ export function Header() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
+                  <DropdownMenuItem asChild className="py-3 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600 dark:hover:text-orange-400 focus:bg-orange-50 dark:focus:bg-orange-900/20 focus:text-orange-600 dark:focus:text-orange-400">
                     <Link href="/profile" className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
                       <span>Profile</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator/>
                   <DropdownMenuItem
                     onClick={signOut}
-                    className="cursor-pointer text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
+                    className="py-3 text-red-600 dark:text-red-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600 dark:hover:text-orange-400 focus:bg-orange-50 dark:focus:bg-orange-900/20 focus:text-orange-600 dark:focus:text-orange-400"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Sign Out</span>

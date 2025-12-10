@@ -20,7 +20,7 @@ export const metadata: Metadata = {
       {
         url: "/icon-32x32.png",
         media: "(prefers-color-scheme: light)",
-      }, 
+      },
       {
         url: "/icon.svg",
         type: "image/svg+xml",
@@ -41,8 +41,8 @@ export default function RootLayout({
         <ThemeProvider>
           <I18nProvider>
             <AuthProvider>
-              {children}
-              <Analytics />
+            {children}
+            <Analytics />
             </AuthProvider>
           </I18nProvider>
         </ThemeProvider>
