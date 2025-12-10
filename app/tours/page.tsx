@@ -50,9 +50,9 @@ export default function ToursPage() {
                     {/* Content */}
                     <div className="space-y-3 flex-1 flex flex-col">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-xl font-bold text-foreground group-hover:text-orange-600 transition-colors">
-                          {tour.title}
-                        </h3>
+                      <h3 className="text-xl font-bold text-foreground group-hover:text-orange-600 transition-colors">
+                        {tour.title}
+                      </h3>
                       </div>
 
                       {/* Details */}

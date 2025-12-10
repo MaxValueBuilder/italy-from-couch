@@ -2,14 +2,16 @@
 
 import { useI18n } from "@/lib/i18n/context"
 import { useTheme } from "@/lib/theme-provider"
+import { useAuth } from "@/lib/auth/context"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useState, useEffect } from "react"
-import { Menu, X, Sun, Moon } from "lucide-react"
+import { Menu, X, Sun, Moon, User, LogOut } from "lucide-react"
 
 export function Header() {
   const i18n = useI18n()
   const theme = useTheme()
+  const { user, signOut } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
 
@@ -78,10 +80,39 @@ export function Header() {
             {theme.theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
           </button>
 
-          {/* Join waitlist button - desktop */}
-          <Button className="hidden sm:flex bg-orange-600 hover:bg-orange-700 text-white">
-            {i18n.t("nav.joinWaitlist")}
-          </Button>
+          {/* Auth buttons - desktop */}
+          {user ? (
+            <div className="hidden sm:flex items-center gap-3">
+              <Link href="/profile">
+                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                  <User size={16} />
+                  {user.displayName || user.email?.split("@")[0]}
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={signOut}
+                className="flex items-center gap-2"
+              >
+                <LogOut size={16} />
+                Sign Out
+              </Button>
+            </div>
+          ) : (
+            <div className="hidden sm:flex items-center gap-3">
+              <Link href="/login">
+                <Button variant="outline" size="sm">
+                  Sign In
+                </Button>
+              </Link>
+              <Link href="/signup">
+                <Button className="bg-orange-600 hover:bg-orange-700 text-white">
+                  Sign Up
+                </Button>
+              </Link>
+            </div>
+          )}
 
           {/* Mobile menu toggle */}
           <button
@@ -108,9 +139,47 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
-            <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white mt-4">
-              {i18n.t("nav.joinWaitlist")}
-            </Button>
+            {user ? (
+              <div className="space-y-2 mt-4">
+                <Link
+                  href="/profile"
+                  className="block px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <div className="flex items-center gap-2">
+                    <User size={16} />
+                    {user.displayName || user.email?.split("@")[0]}
+                  </div>
+                </Link>
+                <button
+                  onClick={() => {
+                    signOut()
+                    setIsMenuOpen(false)
+                  }}
+                  className="w-full px-3 py-2 text-left text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <LogOut size={16} />
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2 mt-4">
+                <Link
+                  href="/login"
+                  className="block px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors text-center"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/signup"
+                  className="block w-full bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg transition-colors text-center"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Sign Up
+                </Link>
+              </div>
+            )}
           </nav>
         </div>
       )}
