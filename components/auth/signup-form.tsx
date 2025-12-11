@@ -143,7 +143,7 @@ export function SignUpForm() {
       <Button
         type="button"
         variant="outline"
-        className="w-full py-6 text-md"
+        className="w-full py-6 text-md hover:text-orange-600 hover:bg-orange-50"
         onClick={handleGoogleSignUp}
         disabled={loading}
       >

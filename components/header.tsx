@@ -137,7 +137,7 @@ export function Header() {
           ) : (
             <div className="hidden sm:flex items-center gap-3">
               <Link href="/login">
-                <Button variant="outline" className="hover:text-orange-600">
+                <Button variant="outline" className="hover:text-orange-600 hover:bg-orange-50">
                   Sign In
                 </Button>
               </Link>
