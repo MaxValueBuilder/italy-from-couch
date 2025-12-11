@@ -3,13 +3,31 @@
 import { useI18n } from "@/lib/i18n/context"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { tours } from "@/lib/data/tours"
+import { fetchTours } from "@/lib/api/tours"
+import { Tour } from "@/lib/data/tours"
 import Link from "next/link"
 import { Clock, MapPin, User } from "lucide-react"
 import { LiveBadge } from "@/components/streaming/live-badge"
+import { useEffect, useState } from "react"
 
 export default function ToursPage() {
   const { t } = useI18n()
+  const [tours, setTours] = useState<Tour[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadTours() {
+      try {
+        const toursData = await fetchTours()
+        setTours(toursData)
+      } catch (error) {
+        console.error("Error loading tours:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadTours()
+  }, [])
 
   return (
     <>
@@ -26,8 +44,17 @@ export default function ToursPage() {
         {/* Tours Grid */}
         <section className="py-16 md:py-24 px-4">
           <div className="max-w-6xl mx-auto space-y-12">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {tours.map((tour) => (
+            {loading ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">Loading tours...</p>
+              </div>
+            ) : tours.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No tours available at the moment.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {tours.map((tour) => (
                 <Link
                   key={tour.id}
                   href={`/tours/${tour.id}`}
@@ -37,7 +64,7 @@ export default function ToursPage() {
                     {/* Image */}
                     <div className="relative h-48 rounded-lg overflow-hidden bg-border flex-shrink-0">
                       <img
-                        src={tour.image || "/placeholder.svg"}
+                        src={tour.images && tour.images.length > 0 ? tour.images[0] : "/placeholder.svg"}
                         alt={tour.title}
                         className="w-full h-full object-cover group-hover:brightness-110 transition-all duration-300"
                       />
@@ -92,8 +119,9 @@ export default function ToursPage() {
                     </div>
                   </div>
                 </Link>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       </main>

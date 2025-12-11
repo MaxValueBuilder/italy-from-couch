@@ -6,12 +6,25 @@ export interface Tour {
   guide: string
   schedule: string
   highlights: string[]
-  image: string
+  images: string[] // Array of image URLs for gallery
   // Streaming fields
   streamUrl?: string // YouTube Live URL or other streaming service URL
   isLive?: boolean // Whether the tour is currently streaming
   streamType?: "youtube" | "twitch" | "custom" // Type of streaming service
   description?: string // Tour description
+  // Additional fields from Civitatis
+  itinerary?: string // Detailed itinerary description
+  meetingPoint?: string // Meeting point location
+  bookingDates?: string[] // Available dates for booking (ISO date strings)
+  details?: {
+    duration?: string // Duration in text format (e.g., "2-2.5 hours")
+    language?: string // Tour language
+    groupSize?: string // Maximum group size
+    included?: string[] // What's included in the tour
+    notIncluded?: string[] // What's not included
+  }
+  createdAt?: Date
+  updatedAt?: Date
 }
 
 export const tours: Tour[] = [
@@ -23,7 +36,7 @@ export const tours: Tour[] = [
     guide: "Marco",
     schedule: "Daily at 10:00 AM & 4:00 PM (CET)",
     highlights: ["Colosseum", "Roman Forum", "Palatine Hill"],
-    image: "/colosseum-rome-ancient-history.jpg",
+    images: ["/colosseum-rome-ancient-history.jpg"],
     streamUrl: "https://www.youtube.com/watch?v=Vp7j3J_C10s", // Will be added when streaming is set up
     isLive: true,
     streamType: "youtube",
@@ -38,7 +51,7 @@ export const tours: Tour[] = [
     guide: "Elena",
     schedule: "Daily at 12:00 PM (CET)",
     highlights: ["Local trattorias", "Artisan shops", "Neighborhood stories"],
-    image: "/rome-trastevere-food-culture.jpg",
+    images: ["/rome-trastevere-food-culture.jpg"],
     streamUrl: "https://www.youtube.com/watch?v=Vp7j3J_C10s", // Will be added when streaming is set up
     isLive: true,
     streamType: "youtube",
@@ -53,7 +66,7 @@ export const tours: Tour[] = [
     guide: "Giovanni",
     schedule: "Daily at 2:00 PM (CET)",
     highlights: ["Pantheon", "Piazza Navona", "Hidden courtyards"],
-    image: "/colosseum-rome-ancient-history.jpg",
+    images: ["/colosseum-rome-ancient-history.jpg"],
     streamUrl: "https://www.youtube.com/watch?v=Vp7j3J_C10s", // Will be added when streaming is set up
     isLive: true,
     streamType: "youtube",
@@ -68,7 +81,7 @@ export const tours: Tour[] = [
     guide: "Sofia",
     schedule: "Daily at 11:00 AM & 3:00 PM (CET)",
     highlights: ["Duomo", "Ponte Vecchio", "Uffizi Gallery exterior"],
-    image: "/florence-duomo-renaissance-art.jpg",
+    images: ["/florence-duomo-renaissance-art.jpg"],
   },
   {
     id: "venice-canals",
@@ -78,7 +91,7 @@ export const tours: Tour[] = [
     guide: "Alessandro",
     schedule: "Daily at 9:00 AM & 5:00 PM (CET)",
     highlights: ["Secret canals", "Local neighborhoods", "Authentic bacari"],
-    image: "/venice-canals-hidden-secrets.jpg",
+    images: ["/venice-canals-hidden-secrets.jpg"],
   },
   {
     id: "florence-sunset",
@@ -88,7 +101,7 @@ export const tours: Tour[] = [
     guide: "Luca",
     schedule: "Daily at 6:00 PM (CET)",
     highlights: ["Golden hour views", "Oltrarno district", "Local life"],
-    image: "/florence-sunset-arno-golden-hour.jpg",
+    images: ["/florence-sunset-arno-golden-hour.jpg"],
   },
   {
     id: "venice-markets",
@@ -98,6 +111,6 @@ export const tours: Tour[] = [
     guide: "Giulia",
     schedule: "Daily at 8:00 AM (CET)",
     highlights: ["Rialto Market", "Morning routines", "Authentic Venice"],
-    image: "/venice-rialto-market-morning.jpg",
+    images: ["/venice-rialto-market-morning.jpg"],
   },
 ]

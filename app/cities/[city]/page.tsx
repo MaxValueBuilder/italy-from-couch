@@ -2,16 +2,36 @@
 
 import { useParams } from "next/navigation"
 import { cities } from "@/lib/data/cities"
-import { tours } from "@/lib/data/tours"
+import { fetchTours } from "@/lib/api/tours"
+import { Tour } from "@/lib/data/tours"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import Link from "next/link"
 import { MapPin } from "lucide-react"
+import { useEffect, useState } from "react"
 
 export default function CityPage() {
   const params = useParams()
   const cityId = params.city as string
   const city = cities[cityId]
+  const [cityTours, setCityTours] = useState<Tour[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadTours() {
+      if (!city) return
+      try {
+        const allTours = await fetchTours()
+        const filtered = allTours.filter((tour) => tour.city === city.name)
+        setCityTours(filtered)
+      } catch (error) {
+        console.error("Error loading tours:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadTours()
+  }, [city])
 
   if (!city) {
     return (
@@ -24,8 +44,6 @@ export default function CityPage() {
       </>
     )
   }
-
-  const cityTours = tours.filter((tour) => tour.city === city.name)
 
   return (
     <>
@@ -91,7 +109,13 @@ export default function CityPage() {
         </section>
 
         {/* Available Tours */}
-        {cityTours.length > 0 && (
+        {loading ? (
+          <section className="py-16 md:py-24 px-4 border-b border-border">
+            <div className="max-w-6xl mx-auto text-center">
+              <p className="text-muted-foreground">Loading tours...</p>
+            </div>
+          </section>
+        ) : cityTours.length > 0 ? (
           <section className="py-16 md:py-24 px-4 border-b border-border">
             <div className="max-w-6xl mx-auto space-y-12">
               <div className="text-center space-y-4 mb-12">
@@ -133,7 +157,7 @@ export default function CityPage() {
               </div>
             </div>
           </section>
-        )}
+        ) : null}
 
         {/* Local Tips */}
         <section className="py-16 md:py-24 px-4 bg-card">
