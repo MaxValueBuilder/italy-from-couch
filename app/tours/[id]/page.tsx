@@ -9,6 +9,7 @@ import { Tour } from "@/lib/data/tours"
 import { VideoPlayer } from "@/components/streaming/video-player"
 import { LiveBadge } from "@/components/streaming/live-badge"
 import { TourImageGallery } from "@/components/tours/tour-image-gallery"
+import { BookingSection } from "@/components/booking/booking-section"
 import { Clock, MapPin, User, ArrowLeft, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -32,7 +33,7 @@ export default function TourDetailPage() {
         // Load related tours
         if (tourData) {
           const allTours = await fetchTours()
-          const related = allTours.filter((t) => t.id !== tourId && t.city === tourData.city).slice(0, 2)
+          const related = allTours.filter((t) => t._id !== tourId && t.city === tourData.city).slice(0, 2)
           setRelatedTours(related)
         }
       } catch (error) {
@@ -106,111 +107,196 @@ export default function TourDetailPage() {
         </section>
 
         {/* Main Content */}
-        <section className="py-8 md:py-12 px-2">
+        <section className="py-8 md:py-12 px-4">
           <div className="max-w-7xl mx-auto">
-            <div className="space-y-6">
-                {/* Image Gallery */}
-                {tour.images && tour.images.length > 0 && (
-                  <div className="space-y-4">
-                    <TourImageGallery images={tour.images} title={tour.title} />
-                  </div>
-                )}
+            <div className="space-y-8">
+              {/* Image Gallery */}
+              {tour.images && tour.images.length > 0 && (
+                <div>
+                  <TourImageGallery images={tour.images} title={tour.title} />
+                </div>
+              )}
 
-                {/* Video Player */}
-                <div className="space-y-4">
-                  <VideoPlayer
-                    streamUrl={tour.streamUrl}
-                    streamType={tour.streamType}
-                    isLive={tour.isLive}
-                    title={tour.title}
-                    thumbnail={tour.images && tour.images.length > 0 ? tour.images[0] : undefined}
-                  />
+              {/* Video Player */}
+              <div className="space-y-4">
+                {/* <VideoPlayer
+                  streamUrl={tour.streamUrl}
+                  streamType={tour.streamType}
+                  isLive={tour.isLive}
+                  title={tour.title}
+                  thumbnail={tour.images && tour.images.length > 0 ? tour.images[0] : undefined}
+                /> */}
 
-                  {/* Stream Status */}
-                  <div className="flex items-center justify-between p-4 bg-card border border-border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      {tour.isLive ? (
-                        <>
-                          <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse" />
-                          <span className="font-semibold text-foreground">{t("tours.currentlyLive")}</span>
-                        </>
-                      ) : tour.streamUrl ? (
-                        <>
-                          <Calendar size={16} className="text-muted-foreground" />
-                          <span className="text-muted-foreground">{t("tours.tourScheduled")}</span>
-                        </>
-                      ) : (
-                        <>
-                          <Clock size={16} className="text-muted-foreground" />
-                          <span className="text-muted-foreground">{t("tours.streamStarting")}</span>
-                        </>
-                      )}
-                    </div>
-                    {tour.isLive && (
-                      <Button className="bg-red-600 hover:bg-red-700 text-white">
-                        {t("tours.watchLive")}
-                      </Button>
+                {/* Stream Status */}
+                <div className="flex items-center justify-between p-4 bg-card border border-border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    {tour.isLive ? (
+                      <>
+                        <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse" />
+                        <span className="font-semibold text-foreground">{t("tours.currentlyLive")}</span>
+                      </>
+                    ) : tour.streamUrl ? (
+                      <>
+                        <Calendar size={16} className="text-muted-foreground" />
+                        <span className="text-muted-foreground">{t("tours.tourScheduled")}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Clock size={16} className="text-muted-foreground" />
+                        <span className="text-muted-foreground">{t("tours.streamStarting")}</span>
+                      </>
                     )}
                   </div>
+                  {tour.isLive && (
+                    <Button className="bg-red-600 hover:bg-red-700 text-white">
+                      {t("tours.watchLive")}
+                    </Button>
+                  )}
                 </div>
+              </div>
 
-                {/* Description */}
-                {tour.description && (
-                  <div className="space-y-4 p-6 bg-card border border-border rounded-lg">
-                    <h2 className="text-xl font-bold text-foreground">{t("tours.description")}</h2>
-                    <p className="text-muted-foreground leading-relaxed">{tour.description}</p>
-                  </div>
-                )}
+              {/* Description */}
+              {tour.description && (
+                <div className="p-6 bg-card border border-border rounded-lg">
+                  <h2 className="text-2xl font-bold text-foreground mb-4">{t("tours.description")}</h2>
+                  <p className="text-muted-foreground leading-relaxed text-lg">{tour.description}</p>
+                </div>
+              )}
 
-                {/* Tour Info Section */}
-                <div className="space-y-6">
+              {/* Main Content Grid: Details (Left) + Booking (Right) */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Left Column - Tour Information */}
+                <div className="lg:col-span-2 space-y-6">
                   {/* Tour Details Card */}
-                  <div className="p-6 bg-card border border-border rounded-lg space-y-4">
-                    <h2 className="text-xl font-bold text-foreground">Tour Details</h2>
-
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <Clock size={18} className="text-muted-foreground" />
+                  <div className="p-6 bg-card border border-border rounded-lg">
+                    <h2 className="text-2xl font-bold text-foreground mb-6">Tour Details</h2>
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-4">
+                        <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                          <Clock size={20} className="text-orange-600 dark:text-orange-400" />
+                        </div>
                         <div>
-                          <p className="text-sm text-muted-foreground">Duration</p>
-                          <p className="font-semibold text-foreground">
+                          <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Duration</p>
+                          <p className="text-lg font-bold text-foreground mt-1">
                             {tour.duration} {t("tours.duration")}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3">
-                        <User size={18} className="text-muted-foreground" />
+                      <div className="flex items-start gap-4">
+                        <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                          <User size={20} className="text-orange-600 dark:text-orange-400" />
+                        </div>
                         <div>
-                          <p className="text-sm text-muted-foreground">{t("tours.guide")}</p>
-                          <p className="font-semibold text-foreground">{tour.guide}</p>
+                          <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t("tours.guide")}</p>
+                          <p className="text-lg font-bold text-foreground mt-1">{tour.guide}</p>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3">
-                        <MapPin size={18} className="text-muted-foreground" />
+                      <div className="flex items-start gap-4">
+                        <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                          <MapPin size={20} className="text-orange-600 dark:text-orange-400" />
+                        </div>
                         <div>
-                          <p className="text-sm text-muted-foreground">Schedule</p>
-                          <p className="font-semibold text-foreground">{tour.schedule}</p>
+                          <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Schedule</p>
+                          <p className="text-lg font-bold text-foreground mt-1">{tour.schedule}</p>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Highlights Card */}
-                  <div className="p-6 bg-card border border-border rounded-lg space-y-4">
-                    <h2 className="text-xl font-bold text-foreground">{t("tours.highlights")}</h2>
-                    <div className="flex flex-wrap gap-2">
+                  <div className="p-6 bg-card border border-border rounded-lg">
+                    <h2 className="text-2xl font-bold text-foreground mb-6">{t("tours.highlights")}</h2>
+                    <div className="flex flex-wrap gap-3">
                       {tour.highlights.map((highlight, idx) => (
                         <span
                           key={idx}
-                          className="text-sm bg-orange-100 dark:bg-orange-900 text-orange-900 dark:text-orange-100 px-3 py-1.5 rounded"
+                          className="text-sm bg-orange-100 dark:bg-orange-900 text-orange-900 dark:text-orange-100 px-4 py-2 rounded-lg font-medium"
                         >
                           {highlight}
                         </span>
                       ))}
                     </div>
                   </div>
+
+                  {/* Details */}
+                  {tour.details && (
+                    <div className="p-6 bg-card border border-border rounded-lg">
+                      <h2 className="text-2xl font-bold text-foreground mb-6">Details</h2>
+                      <div className="space-y-4">
+                        {tour.details.duration && (
+                          <div className="pb-4 border-b border-border last:border-0 last:pb-0">
+                            <p className="text-sm font-semibold text-foreground mb-1">Duration</p>
+                            <p className="text-muted-foreground">{tour.details.duration}</p>
+                          </div>
+                        )}
+                        {tour.details.language && (
+                          <div className="pb-4 border-b border-border last:border-0 last:pb-0">
+                            <p className="text-sm font-semibold text-foreground mb-1">Language</p>
+                            <p className="text-muted-foreground">{tour.details.language}</p>
+                          </div>
+                        )}
+                        {tour.details.groupSize && (
+                          <div className="pb-4 border-b border-border last:border-0 last:pb-0">
+                            <p className="text-sm font-semibold text-foreground mb-1">Group Size</p>
+                            <p className="text-muted-foreground">{tour.details.groupSize}</p>
+                          </div>
+                        )}
+                        {tour.details.included && tour.details.included.length > 0 && (
+                          <div className="pb-4 border-b border-border last:border-0 last:pb-0">
+                            <p className="text-sm font-semibold text-foreground mb-2">Included</p>
+                            <ul className="space-y-1.5">
+                              {tour.details.included.map((item, idx) => (
+                                <li key={idx} className="text-muted-foreground flex items-start gap-2">
+                                  <span className="text-orange-600 dark:text-orange-400 mt-1.5">•</span>
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {tour.details.notIncluded && tour.details.notIncluded.length > 0 && (
+                          <div>
+                            <p className="text-sm font-semibold text-foreground mb-2">Not Included</p>
+                            <ul className="space-y-1.5">
+                              {tour.details.notIncluded.map((item, idx) => (
+                                <li key={idx} className="text-muted-foreground flex items-start gap-2">
+                                  <span className="text-red-500 dark:text-red-400 mt-1.5">•</span>
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Meeting Point */}
+                  {tour.meetingPoint && (
+                    <div className="p-6 bg-card border border-border rounded-lg">
+                      <h2 className="text-2xl font-bold text-foreground mb-4">Meeting Point</h2>
+                      <p className="text-muted-foreground leading-relaxed">{tour.meetingPoint}</p>
+                    </div>
+                  )}
+
+                  {/* Booking Dates */}
+                  {tour.bookingDates && tour.bookingDates.length > 0 && (
+                    <div className="p-6 bg-card border border-border rounded-lg">
+                      <h2 className="text-2xl font-bold text-foreground mb-4">Available Dates</h2>
+                      <div className="flex flex-wrap gap-3">
+                        {tour.bookingDates.map((date, idx) => (
+                          <span
+                            key={idx}
+                            className="text-sm bg-orange-100 dark:bg-orange-900 text-orange-900 dark:text-orange-100 px-4 py-2 rounded-lg font-medium"
+                          >
+                            {new Date(date).toLocaleDateString()}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Join Tour Button */}
                   {tour.isLive && tour.streamUrl && (
@@ -221,14 +307,14 @@ export default function TourDetailPage() {
 
                   {/* Related Tours */}
                   {relatedTours.length > 0 && (
-                    <div className="p-6 bg-card border border-border rounded-lg space-y-4">
-                      <h2 className="text-xl font-bold text-foreground">More Tours</h2>
+                    <div className="p-6 bg-card border border-border rounded-lg">
+                      <h2 className="text-2xl font-bold text-foreground mb-6">More Tours</h2>
                       <div className="space-y-3">
                         {relatedTours.map((relatedTour) => (
                           <Link
-                            key={relatedTour.id}
-                            href={`/tours/${relatedTour.id}`}
-                            className="block p-3 rounded-lg border border-border hover:border-orange-600 transition-colors group"
+                            key={relatedTour._id}
+                            href={`/tours/${relatedTour._id}`}
+                            className="block p-4 rounded-lg border border-border hover:border-orange-600 hover:bg-orange-50/50 dark:hover:bg-orange-950/20 transition-all group"
                           >
                             <p className="font-semibold text-foreground group-hover:text-orange-600 transition-colors">
                               {relatedTour.title}
@@ -243,85 +329,13 @@ export default function TourDetailPage() {
                   )}
                 </div>
 
-                {/* Itinerary
-                {tour.itinerary && (
-                  <div className="space-y-4 p-6 bg-card border border-border rounded-lg">
-                    <h2 className="text-xl font-bold text-foreground">Itinerary</h2>
-                    <div className="text-muted-foreground leading-relaxed whitespace-pre-line">{tour.itinerary}</div>
+                {/* Right Column - Booking Section (Sticky on desktop) */}
+                <div className="lg:col-span-1">
+                  <div className="lg:sticky lg:top-24">
+                    <BookingSection tour={tour} />
                   </div>
-                )} */}
-
-                {/* Details */}
-                {tour.details && (
-                  <div className="space-y-4 p-6 bg-card border border-border rounded-lg">
-                    <h2 className="text-xl font-bold text-foreground">Details</h2>
-                    <div className="space-y-3">
-                      {tour.details.duration && (
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">Duration</p>
-                          <p className="text-muted-foreground">{tour.details.duration}</p>
-                        </div>
-                      )}
-                      {tour.details.language && (
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">Language</p>
-                          <p className="text-muted-foreground">{tour.details.language}</p>
-                        </div>
-                      )}
-                      {tour.details.groupSize && (
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">Group Size</p>
-                          <p className="text-muted-foreground">{tour.details.groupSize}</p>
-                        </div>
-                      )}
-                      {tour.details.included && tour.details.included.length > 0 && (
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">Included</p>
-                          <ul className="list-disc list-inside text-muted-foreground">
-                            {tour.details.included.map((item, idx) => (
-                              <li key={idx}>{item}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {tour.details.notIncluded && tour.details.notIncluded.length > 0 && (
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">Not Included</p>
-                          <ul className="list-disc list-inside text-muted-foreground">
-                            {tour.details.notIncluded.map((item, idx) => (
-                              <li key={idx}>{item}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Meeting Point */}
-                {tour.meetingPoint && (
-                  <div className="space-y-4 p-6 bg-card border border-border rounded-lg">
-                    <h2 className="text-xl font-bold text-foreground">Meeting Point</h2>
-                    <p className="text-muted-foreground">{tour.meetingPoint}</p>
-                  </div>
-                )}
-
-                {/* Booking Dates */}
-                {tour.bookingDates && tour.bookingDates.length > 0 && (
-                  <div className="space-y-4 p-6 bg-card border border-border rounded-lg">
-                    <h2 className="text-xl font-bold text-foreground">Available Dates</h2>
-                    <div className="flex flex-wrap gap-2">
-                      {tour.bookingDates.map((date, idx) => (
-                        <span
-                          key={idx}
-                          className="text-sm bg-orange-100 dark:bg-orange-900 text-orange-900 dark:text-orange-100 px-3 py-1.5 rounded"
-                        >
-                          {new Date(date).toLocaleDateString()}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                </div>
+              </div>
             </div>
           </div>
         </section>

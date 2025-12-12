@@ -53,11 +53,11 @@ export default function ToursPage() {
                 <p className="text-muted-foreground">No tours available at the moment.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {tours.map((tour) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {tours.map((tour) => (
                 <Link
-                  key={tour.id}
-                  href={`/tours/${tour.id}`}
+                  key={tour._id}
+                  href={`/tours/${tour._id}`}
                   className="group cursor-pointer transition-all duration-300 hover:scale-105"
                 >
                   <div className="space-y-4 h-full flex flex-col">
@@ -119,8 +119,8 @@ export default function ToursPage() {
                     </div>
                   </div>
                 </Link>
-                ))}
-              </div>
+              ))}
+            </div>
             )}
           </div>
         </section>

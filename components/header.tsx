@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
 import { Menu, X, Sun, Moon, User, LogOut } from "lucide-react"
 
@@ -21,6 +22,7 @@ export function Header() {
   const i18n = useI18n()
   const theme = useTheme()
   const { user, signOut } = useAuth()
+  const pathname = usePathname()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
 
@@ -32,6 +34,7 @@ export function Header() {
     { href: "/", label: i18n.t("nav.home") },
     { href: "/about", label: i18n.t("nav.about") },
     { href: "/tours", label: i18n.t("nav.tours") },
+    { href: "/bookings", label: "Bookings" },
     { href: "/guides", label: i18n.t("nav.guides") },
     { href: "/blog", label: i18n.t("nav.blog") },
     { href: "/faq", label: i18n.t("nav.faq") },
@@ -67,15 +70,22 @@ export function Header() {
 
         {/* Desktop navigation */}
         <nav className="hidden lg:flex items-center gap-8">
-          {navLinks.map((link) => (
+          {navLinks.map((link) => {
+            const isActive = pathname === link.href || (link.href !== "/" && pathname?.startsWith(link.href))
+            return (
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className={`text-sm transition-colors ${
+                  isActive
+                    ? "text-orange-600 dark:text-orange-400 font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
             >
               {link.label}
             </Link>
-          ))}
+            )
+          })}
         </nav>
 
         {/* Right side controls */}
@@ -144,7 +154,7 @@ export function Header() {
               <Link href="/signup">
                 <Button className="bg-orange-600 hover:bg-orange-700 text-white">
                   Sign Up
-                </Button>
+          </Button>
               </Link>
             </div>
           )}
@@ -164,16 +174,23 @@ export function Header() {
       {isMenuOpen && (
         <div className="lg:hidden border-t border-border bg-background">
           <nav className="max-w-6xl mx-auto px-4 py-4 space-y-3">
-            {navLinks.map((link) => (
+            {navLinks.map((link) => {
+              const isActive = pathname === link.href || (link.href !== "/" && pathname?.startsWith(link.href))
+              return (
               <Link
                 key={link.href}
                 href={link.href}
-                className="block px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                  className={`block px-3 py-2 rounded-lg transition-colors ${
+                    isActive
+                      ? "text-orange-600 dark:text-orange-400 font-semibold bg-orange-50 dark:bg-orange-900/20"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 {link.label}
               </Link>
-            ))}
+              )
+            })}
             {user ? (
               <div className="space-y-2 mt-4">
                 <div className="flex items-center gap-3 px-3 py-2 border-b border-border pb-4">

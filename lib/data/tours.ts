@@ -1,5 +1,5 @@
 export interface Tour {
-  id: string
+  _id: string
   title: string
   city: "Rome" | "Florence" | "Venice"
   duration: number

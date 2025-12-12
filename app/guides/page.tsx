@@ -3,11 +3,30 @@
 import { useI18n } from "@/lib/i18n/context"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { guides } from "@/lib/data/guides"
+import { fetchGuides } from "@/lib/api/guides"
+import { Guide } from "@/lib/data/guides"
 import { Globe } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Loader2 } from "lucide-react"
 
 export default function GuidesPage() {
   const { t } = useI18n()
+  const [guides, setGuides] = useState<Guide[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadGuides() {
+      try {
+        const guidesData = await fetchGuides()
+        setGuides(guidesData)
+      } catch (error) {
+        console.error("Error loading guides:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadGuides()
+  }, [])
 
   return (
     <>
@@ -24,10 +43,20 @@ export default function GuidesPage() {
         {/* Guides Grid */}
         <section className="py-16 md:py-24 px-4">
           <div className="max-w-6xl mx-auto space-y-12">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {guides.map((guide) => (
+            {loading ? (
+              <div className="text-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground mx-auto" />
+                <p className="text-muted-foreground mt-4">Loading guides...</p>
+              </div>
+            ) : guides.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No guides available at the moment.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {guides.map((guide) => (
                 <div
-                  key={guide.id}
+                  key={guide._id}
                   className="space-y-4 p-6 rounded-lg bg-card border border-border hover:shadow-lg transition-shadow"
                 >
                   {/* Image */}
@@ -83,11 +112,12 @@ export default function GuidesPage() {
 
                   {/* Tours count */}
                   <p className="text-sm text-muted-foreground border-t border-border pt-4">
-                    <span className="font-semibold text-foreground">{guide.toursCount}</span> {t("guides.toursAvailable")}
+                    <span className="font-semibold text-foreground">{guide.tours?.length || 0}</span> {t("guides.toursAvailable")}
                   </p>
                 </div>
               ))}
-            </div>
+              </div>
+            )}
           </div>
         </section>
       </main>

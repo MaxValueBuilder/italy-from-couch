@@ -8,12 +8,18 @@ export async function GET(
 ) {
   try {
     const { id } = await params
+    const { ObjectId } = await import("mongodb")
 
     const client = await clientPromise
     const db = client.db("italy-from-couch")
     const tours = db.collection("tours")
 
-    const tour = await tours.findOne({ id })
+    let tour
+    try {
+      tour = await tours.findOne({ _id: new ObjectId(id) })
+    } catch (error) {
+      return NextResponse.json({ error: "Invalid tour ID" }, { status: 400 })
+    }
 
     if (!tour) {
       return NextResponse.json({ error: "Tour not found" }, { status: 404 })

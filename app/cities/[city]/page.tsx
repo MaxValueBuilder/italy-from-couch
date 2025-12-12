@@ -126,8 +126,8 @@ export default function CityPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {cityTours.map((tour) => (
                   <Link
-                    key={tour.id}
-                    href={`/tours/${tour.id}`}
+                  key={tour._id}
+                  href={`/tours/${tour._id}`}
                     className="group cursor-pointer p-6 rounded-lg border border-border bg-card hover:shadow-lg hover:border-orange-600 transition-all"
                   >
                     <div className="space-y-3">

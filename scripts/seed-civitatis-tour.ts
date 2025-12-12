@@ -13,7 +13,6 @@ if (!MONGODB_URI) {
 }
 
 const civitatisTour = {
-  id: "rome-mysteries-legends",
   title: "Free tour dei misteri e delle leggende di Roma",
   city: "Rome",
   duration: 120, // 2 hours (can be 2-2.5 hours)
@@ -72,12 +71,12 @@ async function seedTour() {
     const db = client.db("italy-from-couch")
     const tours = db.collection("tours")
 
-    // Check if tour already exists
-    const existingTour = await tours.findOne({ id: civitatisTour.id })
+    // Check if tour already exists by title
+    const existingTour = await tours.findOne({ title: civitatisTour.title })
     if (existingTour) {
       console.log("Tour already exists. Updating...")
       await tours.updateOne(
-        { id: civitatisTour.id },
+        { title: civitatisTour.title },
         {
           $set: {
             ...civitatisTour,

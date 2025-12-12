@@ -31,12 +31,11 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Create or update a tour
+// POST - Create a tour
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const {
-      id,
       title,
       city,
       duration,
@@ -54,8 +53,8 @@ export async function POST(request: NextRequest) {
       details,
     } = body
 
-    if (!id || !title || !city) {
-      return NextResponse.json({ error: "Missing required fields (id, title, city)" }, { status: 400 })
+    if (!title || !city) {
+      return NextResponse.json({ error: "Missing required fields (title, city)" }, { status: 400 })
     }
 
     const client = await clientPromise
@@ -63,7 +62,6 @@ export async function POST(request: NextRequest) {
     const tours = db.collection("tours")
 
     const tourData = {
-      id,
       title,
       city,
       duration: duration || 0,
@@ -79,25 +77,15 @@ export async function POST(request: NextRequest) {
       meetingPoint: meetingPoint || null,
       bookingDates: bookingDates || [],
       details: details || null,
+      createdAt: new Date(),
       updatedAt: new Date(),
     }
 
-    const result = await tours.updateOne(
-      { id },
-      {
-        $set: tourData,
-        $setOnInsert: {
-          createdAt: new Date(),
-        },
-      },
-      { upsert: true }
-    )
+    const result = await tours.insertOne(tourData)
 
     return NextResponse.json({
       success: true,
-      matchedCount: result.matchedCount,
-      modifiedCount: result.modifiedCount,
-      upsertedCount: result.upsertedCount,
+      _id: result.insertedId.toString(),
     })
   } catch (error: any) {
     console.error("Error saving tour to MongoDB:", error)

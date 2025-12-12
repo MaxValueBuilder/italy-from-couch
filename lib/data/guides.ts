@@ -1,12 +1,14 @@
 export interface Guide {
-  id: string
+  _id: string
   name: string
   city: string
   specialties: string[]
   languages: string[]
   bio: string
-  toursCount: number
+  tours: string[] // Array of tour IDs from tours table
   image: string
+  createdAt?: Date
+  updatedAt?: Date
 }
 
 export const guides: Guide[] = [
