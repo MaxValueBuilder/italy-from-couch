@@ -43,7 +43,7 @@ export function SignUpForm() {
       if (role === "guide") {
         router.push("/guides/complete-profile")
       } else {
-        router.push("/")
+        router.push("/tours")
       }
       router.refresh()
     } catch (err: any) {
@@ -60,7 +60,7 @@ export function SignUpForm() {
       await signInWithGoogle()
       // Google signup defaults to "user" role
       // Guides can update their role later or contact support
-      router.push("/")
+      router.push("/tours")
       router.refresh()
     } catch (err: any) {
       setError(err.message || "Failed to sign up with Google.")

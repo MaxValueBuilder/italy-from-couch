@@ -16,17 +16,17 @@ export function Footer() {
             <h3 className="font-bold text-foreground uppercase text-sm tracking-wider">{t("footer.company")}</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/about" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/#about" className="text-muted-foreground hover:text-foreground transition-colors">
                   {t("footer.about")}
                 </Link>
               </li>
               <li>
-                <Link href="/about" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/#about" className="text-muted-foreground hover:text-foreground transition-colors">
                   {t("footer.ourStory")}
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/#contact" className="text-muted-foreground hover:text-foreground transition-colors">
                   {t("footer.contact")}
                 </Link>
               </li>
@@ -60,12 +60,12 @@ export function Footer() {
             <h3 className="font-bold text-foreground uppercase text-sm tracking-wider">{t("footer.resources")}</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/blog" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/#blog" className="text-muted-foreground hover:text-foreground transition-colors">
                   {t("footer.blog")}
                 </Link>
               </li>
               <li>
-                <Link href="/faq" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/#faq" className="text-muted-foreground hover:text-foreground transition-colors">
                   {t("footer.faq")}
                 </Link>
               </li>

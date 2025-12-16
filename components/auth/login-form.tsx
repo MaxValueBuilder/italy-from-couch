@@ -19,38 +19,31 @@ export function LoginForm() {
 
   // Handle redirect after login - wait a bit for userInfo to load
   useEffect(() => {
-    console.log("[LOGIN] useEffect triggered:", { 
-      hasUserInfo: !!userInfo, 
-      loading, 
-      userInfoRole: userInfo?.role,
-      userInfoGuideId: userInfo?.guideId 
-    })
-    
     if (userInfo && !loading) {
-      console.log("[LOGIN] UserInfo available, preparing redirect...")
       const redirect = searchParams.get("redirect")
       if (redirect) {
-        console.log("[LOGIN] Redirecting to:", redirect)
         router.push(redirect)
         setLoading(false)
-      } else if (userInfo.role === "guide") {
-        // Check if guide has completed profile (has guideId)
-        // If not, redirect to complete profile page
+        return
+      }
+      
+      // Check if user is a guide (has guideId or role is guide)
+      const isGuide = userInfo.guideId || userInfo.role === "guide"
+      
+      if (isGuide) {
+        // If guide hasn't completed profile, redirect to complete profile page
         if (!userInfo.guideId) {
-          console.log("[LOGIN] Guide without profile, redirecting to complete-profile")
           router.push("/guides/complete-profile")
         } else {
-          console.log("[LOGIN] Guide with profile, redirecting to dashboard")
+          // Guide with profile - redirect to dashboard
           router.push("/guides/dashboard")
         }
-        setLoading(false)
       } else {
-        console.log("[LOGIN] Regular user, redirecting to home")
-        router.push("/")
-        setLoading(false)
+        // Regular user - redirect to tours page
+        router.push("/tours")
       }
+      setLoading(false)
     } else if (userInfo && loading) {
-      console.log("[LOGIN] UserInfo available but loading is still true - setting loading to false")
       setLoading(false)
     }
   }, [userInfo, loading, searchParams, router])

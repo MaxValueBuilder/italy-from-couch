@@ -11,7 +11,7 @@ import { VideoPlayer } from "@/components/streaming/video-player"
 import { LiveBadge } from "@/components/streaming/live-badge"
 import { TourImageGallery } from "@/components/tours/tour-image-gallery"
 import { BookingSection } from "@/components/booking/booking-section"
-import { Clock, MapPin, User, ArrowLeft, Calendar } from "lucide-react"
+import { Clock, MapPin, User, ArrowLeft, Calendar, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useEffect, useState } from "react"
@@ -31,40 +31,23 @@ export default function TourDetailPage() {
     bookingId?: string
   } | null>(null)
 
-  // Force console logs to appear
-  if (typeof window !== "undefined") {
-    console.log("[TOUR] Component rendered, tourId:", tourId, "loading:", loading, "hasTour:", !!tour)
-    console.log("[TOUR] Window is defined, component is client-side")
-  }
-
   useEffect(() => {
-    console.log("[TOUR] useEffect triggered, tourId:", tourId)
-    console.log("[TOUR] useEffect is running on client side")
-    
     async function loadTour() {
       try {
-        console.log("[TOUR] Loading tour data for:", tourId)
         const tourData = await fetchTourById(tourId)
-        console.log("[TOUR] Tour data loaded:", tourData?._id)
         setTour(tourData)
 
         // Check for active stream for this tour
         if (tourId) {
           try {
-            console.log("[TOUR] Checking for active stream for tour:", tourId)
             const streamData = await getTourStreamInfo(tourId)
-            console.log("[TOUR] Stream info received:", streamData)
             setStreamInfo({
               isActive: streamData.isActive,
               bookingId: streamData.bookingId,
             })
-          } catch (error: any) {
-            console.error("[TOUR] Error loading stream info:", error)
-            console.error("[TOUR] Error details:", error.message, error.stack)
+          } catch (error) {
             setStreamInfo({ isActive: false })
           }
-        } else {
-          console.warn("[TOUR] No tourId provided, skipping stream check")
         }
 
         // Load related tours
@@ -81,43 +64,31 @@ export default function TourDetailPage() {
     }
     loadTour()
 
-    // Poll for stream updates every 5 seconds
+    // Poll for stream updates every 10 seconds (reduced frequency)
     const interval = setInterval(async () => {
       if (!tourId) return
-      
       try {
-        console.log("[TOUR] Polling for stream updates, tourId:", tourId)
         const streamData = await getTourStreamInfo(tourId)
-        const wasActive = streamInfo?.isActive
-        if (streamData.isActive !== wasActive) {
-          console.log("[TOUR] Stream status changed:", { wasActive, isActive: streamData.isActive, streamData })
-        }
         setStreamInfo({
           isActive: streamData.isActive,
           bookingId: streamData.bookingId,
         })
-      } catch (error: any) {
-        console.error("[TOUR] Error polling stream info:", error)
-        console.error("[TOUR] Polling error details:", error.message)
+      } catch (error) {
+        // Silently handle polling errors
       }
-    }, 5000)
+    }, 10000)
 
-    return () => {
-      console.log("[TOUR] Cleaning up interval")
-      clearInterval(interval)
-    }
+    return () => clearInterval(interval)
   }, [tourId])
 
   if (loading) {
-    console.log("[TOUR] Rendering loading state")
     return (
       <>
         <Header />
         <main className="min-h-screen flex items-center justify-center bg-background">
           <div className="text-center space-y-4">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto text-muted-foreground" />
             <p className="text-muted-foreground">Loading tour...</p>
-            {/* Debug: This should appear if component is rendering */}
-            <p className="text-xs text-muted-foreground">Tour ID: {tourId}</p>
           </div>
         </main>
         <Footer />
@@ -140,18 +111,9 @@ export default function TourDetailPage() {
     )
   }
 
-  // Debug: Add visible indicator
-  console.log("[TOUR] Rendering main content, streamInfo:", streamInfo)
-
   return (
     <>
       <Header />
-      {/* Debug indicator - remove after testing */}
-      {process.env.NODE_ENV === "development" && (
-        <div className="bg-yellow-100 dark:bg-yellow-900 p-2 text-xs text-center">
-          DEBUG: Tour ID: {tourId} | Stream Active: {streamInfo?.isActive ? "YES" : "NO"} | BookingId: {streamInfo?.bookingId || "none"}
-        </div>
-      )}
       <main className="bg-background">
         {/* Hero Section with Tour Image */}
         <section className="relative h-64 md:h-96 overflow-hidden">
@@ -192,58 +154,29 @@ export default function TourDetailPage() {
                 </div>
               )}
 
-              {/* Video Player */}
-              <div className="space-y-4">
-                {(() => {
-                  const streamType = streamInfo?.isActive ? "agora" : (tour.streamType || "youtube")
-                  const isLive = streamInfo?.isActive || tour.isLive || false
-                  console.log("[TOUR] Rendering VideoPlayer:", {
-                    streamType,
-                    isLive,
-                    bookingId: streamInfo?.bookingId,
-                    streamInfoActive: streamInfo?.isActive,
-                    hasStreamInfo: !!streamInfo,
-                  })
-                  return (
-                    <VideoPlayer
-                      streamUrl={tour.streamUrl}
-                      streamType={streamType}
-                      isLive={isLive}
-                      title={tour.title}
-                      thumbnail={tour.images && tour.images.length > 0 ? tour.images[0] : undefined}
-                      bookingId={streamInfo?.bookingId}
-                      userId={user?.uid}
-                    />
-                  )
-                })()}
-
-                {/* Stream Status */}
-                <div className="flex items-center justify-between p-4 bg-card border border-border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    {streamInfo?.isActive || tour.isLive ? (
-                      <>
+              {/* Stream Status Card */}
+              {streamInfo?.isActive && (
+                <div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 border-2 border-red-200 dark:border-red-800 rounded-lg p-6 shadow-lg">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
                         <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse" />
-                        <span className="font-semibold text-foreground">{t("tours.currentlyLive")}</span>
-                      </>
-                    ) : tour.streamUrl ? (
-                      <>
-                        <Calendar size={16} className="text-muted-foreground" />
-                        <span className="text-muted-foreground">{t("tours.tourScheduled")}</span>
-                      </>
-                    ) : (
-                      <>
-                        <Clock size={16} className="text-muted-foreground" />
-                        <span className="text-muted-foreground">{t("tours.streamStarting")}</span>
-                      </>
-                    )}
-                  </div>
-                  {(streamInfo?.isActive || tour.isLive) && (
-                    <Button className="bg-red-600 hover:bg-red-700 text-white">
-                      {t("tours.watchLive")}
+                        <span className="font-bold text-lg text-foreground">{t("tours.currentlyLive")}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground hidden sm:block">
+                        Join the live tour experience
+                      </p>
+                    </div>
+                    <Button
+                      size="lg"
+                      className="bg-red-600 hover:bg-red-700 text-white w-full sm:w-auto"
+                      onClick={() => router.push(`/tours/${tourId}/live`)}
+                    >
+                      Watch Live Stream
                     </Button>
-                  )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Description */}
               {tour.description && (
@@ -388,12 +321,6 @@ export default function TourDetailPage() {
                     </div>
                   )}
 
-                  {/* Join Tour Button */}
-                  {(streamInfo?.isActive || (tour.isLive && tour.streamUrl)) && (
-                    <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white text-lg py-6">
-                      {t("tours.joinTour")}
-                    </Button>
-                  )}
 
                   {/* Related Tours */}
                   {relatedTours.length > 0 && (

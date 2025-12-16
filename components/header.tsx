@@ -16,30 +16,57 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
-import { Menu, X, Sun, Moon, User, LogOut } from "lucide-react"
+import { Menu, X, Sun, Moon, User, LogOut, LayoutDashboard, Calendar } from "lucide-react"
 
 export function Header() {
   const i18n = useI18n()
   const theme = useTheme()
-  const { user, signOut } = useAuth()
+  const { user, userInfo, signOut } = useAuth()
   const pathname = usePathname()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
+  
+  // Check if user is a guide
+  const isGuide = userInfo?.guideId || userInfo?.role === "guide"
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  const navLinks = [
-    { href: "/", label: i18n.t("nav.home") },
-    { href: "/about", label: i18n.t("nav.about") },
-    { href: "/tours", label: i18n.t("nav.tours") },
-    { href: "/bookings", label: "Bookings" },
-    { href: "/guides", label: i18n.t("nav.guides") },
-    { href: "/blog", label: i18n.t("nav.blog") },
-    { href: "/faq", label: i18n.t("nav.faq") },
-    { href: "/contact", label: i18n.t("nav.contact") },
-  ]
+  // Generate navigation links based on user role
+  // Note: Blog, FAQ, and Contact are on the landing page, so we don't include them in nav
+  // Note: "Home" is removed - logo links to home page
+  const getNavLinks = () => {
+    const baseLinks = [
+      { href: "/tours", label: i18n.t("nav.tours") },
+    ]
+
+    if (user) {
+      // Authenticated users - show role-specific links
+      if (isGuide) {
+        // Guide navigation - no "Guides" link (guides don't need to see other guides)
+        return [
+          ...baseLinks,
+          { href: "/guides/dashboard", label: "Dashboard" },
+        ]
+      } else {
+        // Regular user navigation - no "Dashboard" link (user dashboard was removed)
+        return [
+          ...baseLinks,
+          { href: "/bookings", label: "Bookings" },
+          { href: "/guides", label: i18n.t("nav.guides") },
+        ]
+      }
+    } else {
+      // Unauthenticated users - show navigation (Blog, FAQ, Contact are on landing page)
+      return [
+        ...baseLinks,
+        { href: "/guides", label: i18n.t("nav.guides") },
+      ]
+    }
+  }
+
+  const navLinks = getNavLinks()
 
   // Don't render interactive content until mounted to avoid hydration issues
   if (!mounted) {
@@ -70,11 +97,12 @@ export function Header() {
 
         {/* Desktop navigation */}
         <nav className="hidden lg:flex items-center gap-8">
-          {navLinks.map((link) => {
+          {navLinks.map((link, index) => {
+            // Active state: exact match or starts with (except for root)
             const isActive = pathname === link.href || (link.href !== "/" && pathname?.startsWith(link.href))
             return (
             <Link
-              key={link.href}
+              key={`${link.href}-${link.label}-${index}`}
               href={link.href}
                 className={`text-sm transition-colors ${
                   isActive
@@ -118,15 +146,39 @@ export function Header() {
                 <DropdownMenuContent align="end" className="w-56 py-2 px-2">
                   <DropdownMenuLabel className="font-normal py-4 px-2">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {user.displayName || "User"}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium leading-none">
+                          {user.displayName || "User"}
+                        </p>
+                        {isGuide && (
+                          <span className="text-xs px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded-full font-medium">
+                            Guide
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs leading-none text-muted-foreground">
                         {user.email}
                       </p>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  {isGuide && (
+                    <>
+                      <DropdownMenuItem asChild className="py-3 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600 dark:hover:text-orange-400 focus:bg-orange-50 dark:focus:bg-orange-900/20 focus:text-orange-600 dark:focus:text-orange-400">
+                        <Link href="/guides/dashboard" className="cursor-pointer">
+                          <LayoutDashboard className="mr-2 h-4 w-4" />
+                          <span>Guide Dashboard</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  <DropdownMenuItem asChild className="py-3 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600 dark:hover:text-orange-400 focus:bg-orange-50 dark:focus:bg-orange-900/20 focus:text-orange-600 dark:focus:text-orange-400">
+                    <Link href="/bookings" className="cursor-pointer">
+                      <Calendar className="mr-2 h-4 w-4" />
+                      <span>My Bookings</span>
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild className="py-3 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600 dark:hover:text-orange-400 focus:bg-orange-50 dark:focus:bg-orange-900/20 focus:text-orange-600 dark:focus:text-orange-400">
                     <Link href="/profile" className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
@@ -174,11 +226,11 @@ export function Header() {
       {isMenuOpen && (
         <div className="lg:hidden border-t border-border bg-background">
           <nav className="max-w-6xl mx-auto px-4 py-4 space-y-3">
-            {navLinks.map((link) => {
+            {navLinks.map((link, index) => {
               const isActive = pathname === link.href || (link.href !== "/" && pathname?.startsWith(link.href))
               return (
               <Link
-                key={link.href}
+                key={`${link.href}-${link.label}-${index}`}
                 href={link.href}
                   className={`block px-3 py-2 rounded-lg transition-colors ${
                     isActive
@@ -202,15 +254,44 @@ export function Header() {
                         : user.email?.charAt(0).toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col">
-                    <p className="text-sm font-medium text-foreground">
-                      {user.displayName || "User"}
-                    </p>
+                  <div className="flex flex-col flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-foreground">
+                        {user.displayName || "User"}
+                      </p>
+                      {isGuide && (
+                        <span className="text-xs px-1.5 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded font-medium">
+                          Guide
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-muted-foreground">
                       {user.email}
                     </p>
                   </div>
                 </div>
+                {isGuide && (
+                  <Link
+                    href="/guides/dashboard"
+                    className="block px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <LayoutDashboard size={16} />
+                      Guide Dashboard
+                    </div>
+                  </Link>
+                )}
+                <Link
+                  href="/bookings"
+                  className="block px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <div className="flex items-center gap-2">
+                    <Calendar size={16} />
+                    My Bookings
+                  </div>
+                </Link>
                 <Link
                   href="/profile"
                   className="block px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"

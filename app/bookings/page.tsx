@@ -360,15 +360,7 @@ export default function BookingsPage() {
               </TabsContent>
             </Tabs>
 
-            {/* Empty State - All tabs */}
-            {bookings.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground mb-4">You don't have any bookings yet.</p>
-                <Link href="/tours">
-                  <Button>Browse Tours</Button>
-                </Link>
-              </div>
-            )}
+  
           </div>
         </section>
       </main>

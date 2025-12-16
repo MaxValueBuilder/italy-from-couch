@@ -28,7 +28,7 @@ export function CitiesSection() {
   ]
 
   return (
-    <section className="py-16 md:py-24 bg-card px-4">
+    <section id="cities" className="py-16 md:py-24 bg-card px-4 scroll-mt-16">
       <div className="max-w-6xl mx-auto space-y-12">
         {/* Section header */}
         <div className="text-center space-y-4">

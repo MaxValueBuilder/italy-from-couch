@@ -18,15 +18,11 @@ export async function GET(
     const bookings = db.collection("bookings")
     const streamSessions = db.collection("streamSessions")
 
-    console.log("[API] Checking for active stream for tour:", tourId)
-    
     // Find active booking for this tour (status = "live")
     const activeBooking = await bookings.findOne({
       tourId,
       status: "live",
     })
-
-    console.log("[API] Active booking found:", activeBooking ? { id: activeBooking._id.toString(), tourId: activeBooking.tourId, status: activeBooking.status } : "none")
 
     if (!activeBooking) {
       return NextResponse.json({
@@ -42,8 +38,6 @@ export async function GET(
       bookingId: bookingIdStr,
       status: "active",
     })
-
-    console.log("[API] Stream session found:", session ? { bookingId: session.bookingId, status: session.status, channelName: session.channelName } : "none")
 
     if (!session) {
       return NextResponse.json({

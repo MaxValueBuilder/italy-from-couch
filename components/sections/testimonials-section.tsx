@@ -57,7 +57,7 @@ export function TestimonialsSection() {
   ]
 
   return (
-    <section className="py-16 md:py-24 bg-background px-4">
+    <section id="testimonials" className="py-16 md:py-24 bg-background px-4 scroll-mt-16">
       <div className="max-w-6xl mx-auto space-y-12">
         {/* Section header */}
         <div className="text-center space-y-4">
