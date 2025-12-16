@@ -5,6 +5,7 @@ import { useI18n } from "@/lib/i18n/context"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { fetchTourById, fetchTours } from "@/lib/api/tours"
+import { getTourStreamInfo } from "@/lib/api/streams"
 import { Tour } from "@/lib/data/tours"
 import { VideoPlayer } from "@/components/streaming/video-player"
 import { LiveBadge } from "@/components/streaming/live-badge"
@@ -14,21 +15,41 @@ import { Clock, MapPin, User, ArrowLeft, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import { useAuth } from "@/lib/auth/context"
 
 export default function TourDetailPage() {
   const params = useParams()
   const router = useRouter()
   const { t } = useI18n()
+  const { user } = useAuth()
   const tourId = params.id as string
   const [tour, setTour] = useState<Tour | null>(null)
   const [relatedTours, setRelatedTours] = useState<Tour[]>([])
   const [loading, setLoading] = useState(true)
+  const [streamInfo, setStreamInfo] = useState<{
+    isActive: boolean
+    bookingId?: string
+  } | null>(null)
 
   useEffect(() => {
     async function loadTour() {
       try {
         const tourData = await fetchTourById(tourId)
         setTour(tourData)
+
+        // Check for active stream for this tour
+        try {
+          console.log("[TOUR] Checking for active stream for tour:", tourId)
+          const streamData = await getTourStreamInfo(tourId)
+          console.log("[TOUR] Stream info:", streamData)
+          setStreamInfo({
+            isActive: streamData.isActive,
+            bookingId: streamData.bookingId,
+          })
+        } catch (error) {
+          console.error("[TOUR] Error loading stream info:", error)
+          setStreamInfo({ isActive: false })
+        }
 
         // Load related tours
         if (tourData) {
@@ -43,6 +64,24 @@ export default function TourDetailPage() {
       }
     }
     loadTour()
+
+    // Poll for stream updates every 5 seconds
+    const interval = setInterval(async () => {
+      try {
+        const streamData = await getTourStreamInfo(tourId)
+        if (streamData.isActive !== streamInfo?.isActive) {
+          console.log("[TOUR] Stream status changed:", streamData)
+        }
+        setStreamInfo({
+          isActive: streamData.isActive,
+          bookingId: streamData.bookingId,
+        })
+      } catch (error) {
+        console.error("[TOUR] Error polling stream info:", error)
+      }
+    }, 5000)
+
+    return () => clearInterval(interval)
   }, [tourId])
 
   if (loading) {
@@ -89,7 +128,7 @@ export default function TourDetailPage() {
           <div className="absolute inset-0 flex items-end">
             <div className="w-full max-w-6xl mx-auto px-4 pb-8">
               <div className="flex items-center gap-3 mb-4">
-                <LiveBadge isLive={tour.isLive || false} />
+                <LiveBadge isLive={streamInfo?.isActive || tour.isLive || false} />
                 <Button
                   variant="outline"
                   size="sm"
@@ -119,18 +158,20 @@ export default function TourDetailPage() {
 
               {/* Video Player */}
               <div className="space-y-4">
-                {/* <VideoPlayer
+                <VideoPlayer
                   streamUrl={tour.streamUrl}
-                  streamType={tour.streamType}
-                  isLive={tour.isLive}
+                  streamType={streamInfo?.isActive ? "agora" : (tour.streamType || "youtube")}
+                  isLive={streamInfo?.isActive || tour.isLive || false}
                   title={tour.title}
                   thumbnail={tour.images && tour.images.length > 0 ? tour.images[0] : undefined}
-                /> */}
+                  bookingId={streamInfo?.bookingId}
+                  userId={user?.uid}
+                />
 
                 {/* Stream Status */}
                 <div className="flex items-center justify-between p-4 bg-card border border-border rounded-lg">
                   <div className="flex items-center gap-3">
-                    {tour.isLive ? (
+                    {streamInfo?.isActive || tour.isLive ? (
                       <>
                         <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse" />
                         <span className="font-semibold text-foreground">{t("tours.currentlyLive")}</span>
@@ -147,7 +188,7 @@ export default function TourDetailPage() {
                       </>
                     )}
                   </div>
-                  {tour.isLive && (
+                  {(streamInfo?.isActive || tour.isLive) && (
                     <Button className="bg-red-600 hover:bg-red-700 text-white">
                       {t("tours.watchLive")}
                     </Button>
@@ -299,7 +340,7 @@ export default function TourDetailPage() {
                   )}
 
                   {/* Join Tour Button */}
-                  {tour.isLive && tour.streamUrl && (
+                  {(streamInfo?.isActive || (tour.isLive && tour.streamUrl)) && (
                     <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white text-lg py-6">
                       {t("tours.joinTour")}
                     </Button>

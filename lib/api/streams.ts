@@ -143,3 +143,32 @@ export async function getStreamToken(
   return response.json()
 }
 
+/**
+ * Get active stream information for a tour
+ */
+export interface TourStreamInfoResponse {
+  success: boolean
+  isActive: boolean
+  bookingId?: string
+  channelName?: string
+  guideId?: string
+  tourId?: string
+  startedAt?: string
+  participantCount?: number
+  appId?: string
+  message?: string
+}
+
+export async function getTourStreamInfo(
+  tourId: string
+): Promise<TourStreamInfoResponse> {
+  const response = await fetch(`/api/streams/tour/${tourId}`)
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.message || "Failed to fetch tour stream info")
+  }
+
+  return response.json()
+}
+

@@ -56,9 +56,16 @@ export function VideoPlayer({
   const fetchAgoraStreamConfig = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch(
-        `/api/streams/${bookingId}?role=subscriber${userId ? `&userId=${userId}` : ""}`
-      )
+      const response = await fetch(`/api/streams/${bookingId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          role: "subscriber",
+          userId: userId || undefined,
+        }),
+      })
       if (!response.ok) {
         throw new Error("Failed to fetch stream configuration")
       }
@@ -113,7 +120,22 @@ export function VideoPlayer({
     return null
   }
 
-  if (!streamUrl) {
+  // For Agora streams, we don't need streamUrl - we need bookingId
+  // For other stream types, we need streamUrl
+  if (streamType !== "agora" && !streamUrl) {
+    return (
+      <div className="w-full aspect-video bg-black rounded-lg flex items-center justify-center">
+        <div className="text-center text-white/70 space-y-2">
+          <Play size={48} className="mx-auto opacity-50" />
+          <p className="text-lg">No stream available</p>
+          <p className="text-sm">Stream will start at the scheduled time</p>
+        </div>
+      </div>
+    )
+  }
+
+  // For Agora streams without bookingId, show message
+  if (streamType === "agora" && !bookingId) {
     return (
       <div className="w-full aspect-video bg-black rounded-lg flex items-center justify-center">
         <div className="text-center text-white/70 space-y-2">
@@ -126,6 +148,15 @@ export function VideoPlayer({
   }
 
   if (streamType === "youtube") {
+    if (!streamUrl) {
+      return (
+        <div className="w-full aspect-video bg-black rounded-lg flex items-center justify-center">
+          <div className="text-center text-white/70">
+            <p className="text-lg">Invalid stream URL</p>
+          </div>
+        </div>
+      )
+    }
     const videoId = getYouTubeLiveId(streamUrl)
 
     if (!videoId) {
