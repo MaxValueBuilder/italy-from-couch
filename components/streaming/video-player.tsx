@@ -2,13 +2,30 @@
 
 import { useEffect, useState } from "react"
 import { Play, Loader2 } from "lucide-react"
+import dynamic from "next/dynamic"
+
+// Dynamically import AgoraViewer to prevent SSR (Agora SDK requires browser APIs)
+const AgoraViewer = dynamic(() => import("./agora-viewer").then((mod) => ({ default: mod.AgoraViewer })), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full aspect-video bg-black rounded-lg flex items-center justify-center">
+      <div className="text-center text-white/70 space-y-2">
+        <Loader2 className="w-12 h-12 mx-auto animate-spin" />
+        <p className="text-lg">Loading stream...</p>
+      </div>
+    </div>
+  ),
+})
 
 interface VideoPlayerProps {
   streamUrl?: string
-  streamType?: "youtube" | "twitch" | "custom"
+  streamType?: "youtube" | "twitch" | "agora" | "custom"
   isLive?: boolean
   title?: string
   thumbnail?: string // Optional thumbnail image
+  // Agora-specific props
+  bookingId?: string
+  userId?: string
 }
 
 export function VideoPlayer({
@@ -17,16 +34,59 @@ export function VideoPlayer({
   isLive = false,
   title,
   thumbnail,
+  bookingId,
+  userId,
 }: VideoPlayerProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [agoraConfig, setAgoraConfig] = useState<{
+    appId: string
+    channelName: string
+    token: string
+  } | null>(null)
+
+  // Fetch Agora stream configuration
+  useEffect(() => {
+    if (streamType === "agora" && bookingId) {
+      fetchAgoraStreamConfig()
+    }
+  }, [streamType, bookingId, userId])
+
+  const fetchAgoraStreamConfig = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch(
+        `/api/streams/${bookingId}?role=subscriber${userId ? `&userId=${userId}` : ""}`
+      )
+      if (!response.ok) {
+        throw new Error("Failed to fetch stream configuration")
+      }
+      const data = await response.json()
+      if (data.success && data.appId && data.channelName && data.token) {
+        setAgoraConfig({
+          appId: data.appId,
+          channelName: data.channelName,
+          token: data.token,
+        })
+      } else {
+        throw new Error("Invalid stream configuration")
+      }
+    } catch (error: any) {
+      console.error("Error fetching Agora config:", error)
+      setHasError(true)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
-    setIsLoading(true)
-    setHasError(false)
-    setIsPlaying(false)
-  }, [streamUrl])
+    if (streamType !== "agora") {
+      setIsLoading(true)
+      setHasError(false)
+      setIsPlaying(false)
+    }
+  }, [streamUrl, streamType])
 
   // Extract YouTube video ID from URL
   const getYouTubeVideoId = (url: string): string | null => {
@@ -152,6 +212,39 @@ export function VideoPlayer({
           </div>
         )}
       </div>
+    )
+  }
+
+  // Agora streaming
+  if (streamType === "agora") {
+    if (isLoading) {
+      return (
+        <div className="w-full aspect-video bg-black rounded-lg flex items-center justify-center">
+          <div className="text-center text-white/70 space-y-2">
+            <Loader2 className="w-12 h-12 mx-auto animate-spin" />
+            <p className="text-lg">Loading stream...</p>
+          </div>
+        </div>
+      )
+    }
+
+    if (hasError || !agoraConfig) {
+      return (
+        <div className="w-full aspect-video bg-black rounded-lg flex items-center justify-center">
+          <div className="text-center text-white/70 space-y-2">
+            <p className="text-lg">Unable to load stream</p>
+            <p className="text-sm">Stream may not be active or configuration is missing</p>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <AgoraViewer
+        appId={agoraConfig.appId}
+        channelName={agoraConfig.channelName}
+        token={agoraConfig.token}
+      />
     )
   }
 

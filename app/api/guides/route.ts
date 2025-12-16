@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, city, specialties, languages, bio, tours, image } = body
+    const { userId, name, city, specialties, languages, bio, tours, image } = body
 
     if (!name || !city) {
       return NextResponse.json(
@@ -53,6 +53,18 @@ export async function POST(request: NextRequest) {
     const client = await clientPromise
     const db = client.db("italy-from-couch")
     const guides = db.collection("guides")
+    const users = db.collection("users")
+
+    // If userId is provided, check if user already has a guide profile
+    if (userId) {
+      const existingUser = await users.findOne({ uid: userId })
+      if (existingUser?.guideId) {
+        return NextResponse.json(
+          { error: "User already has a guide profile linked" },
+          { status: 400 }
+        )
+      }
+    }
 
     const guideData = {
       name,
@@ -67,10 +79,19 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await guides.insertOne(guideData)
+    const guideId = result.insertedId.toString()
+
+    // If userId is provided, automatically link the guide profile to the user
+    if (userId) {
+      await users.updateOne(
+        { uid: userId },
+        { $set: { guideId: guideId, updatedAt: new Date() } }
+      )
+    }
 
     return NextResponse.json({
       success: true,
-      _id: result.insertedId.toString(),
+      _id: guideId,
     })
   } catch (error: any) {
     console.error("Error saving guide to MongoDB:", error)

@@ -47,7 +47,7 @@ export function BookingSection({ tour }: BookingSectionProps) {
         userId: user.uid,
         tourId: tour._id,
         guideId: tour.guide || "",
-        scheduledAt: selectedSlot.startTime,
+        scheduledAt: selectedSlot.startTime instanceof Date ? selectedSlot.startTime.toISOString() : selectedSlot.startTime,
         timezone: selectedSlot.timezone || getCityTimezone(tour.city),
         duration: tour.duration || 90,
       })

@@ -1,18 +1,41 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { signIn, signInWithGoogle } from "@/lib/auth/auth"
+import { useAuth } from "@/lib/auth/context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Loader2 } from "lucide-react"
 
 export function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const { userInfo } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+
+  // Handle redirect after login - wait a bit for userInfo to load
+  useEffect(() => {
+    if (userInfo && !loading) {
+      const redirect = searchParams.get("redirect")
+      if (redirect) {
+        router.push(redirect)
+      } else if (userInfo.role === "guide") {
+        // Check if guide has completed profile (has guideId)
+        // If not, redirect to complete profile page
+        if (!userInfo.guideId) {
+          router.push("/guides/complete-profile")
+        } else {
+          router.push("/guides/dashboard")
+        }
+      } else {
+        router.push("/")
+      }
+    }
+  }, [userInfo, loading, searchParams, router])
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -21,8 +44,8 @@ export function LoginForm() {
 
     try {
       await signIn(email, password)
-      router.push("/")
-      router.refresh()
+      // Redirect will be handled by useEffect when userInfo is loaded
+      // Don't redirect here to avoid race condition
     } catch (err: any) {
       setError(err.message || "Failed to sign in. Please check your credentials.")
       setLoading(false)
@@ -35,8 +58,8 @@ export function LoginForm() {
 
     try {
       await signInWithGoogle()
-      router.push("/")
-      router.refresh()
+      // Redirect will be handled by useEffect when userInfo is loaded
+      // Don't redirect here to avoid race condition
     } catch (err: any) {
       setError(err.message || "Failed to sign in with Google.")
       setLoading(false)

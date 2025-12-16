@@ -12,13 +12,22 @@ import { auth } from "@/lib/firebase/config"
 const googleProvider = new GoogleAuthProvider()
 
 // Sign up with email/password
-export async function signUp(email: string, password: string, name?: string) {
+export async function signUp(
+  email: string,
+  password: string,
+  name?: string,
+  role: "user" | "guide" = "user"
+) {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password)
     const user = userCredential.user
 
     // Save user to MongoDB
-    await saveUserToDatabase(user, name)
+    await saveUserToDatabase(user, name, role)
+
+    // Give MongoDB a moment to be ready for queries
+    // This helps prevent race conditions when fetching userInfo immediately after signup
+    await new Promise((resolve) => setTimeout(resolve, 500))
 
     return user
   } catch (error: any) {
@@ -60,13 +69,14 @@ export async function signInWithGoogle() {
 }
 
 // Save user to MongoDB
-async function saveUserToDatabase(user: User, name?: string) {
+async function saveUserToDatabase(user: User, name?: string, role?: "user" | "guide") {
   const userData = {
     uid: user.uid,
     email: user.email,
     name: name || user.displayName || "",
     photoURL: user.photoURL || "",
     provider: user.providerData[0]?.providerId || "password",
+    role: role || "user", // Default to "user" if not specified
   }
 
   try {
@@ -81,12 +91,13 @@ async function saveUserToDatabase(user: User, name?: string) {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
       console.error("[AUTH] Failed to save user to database:", response.status, errorData)
-      // Don't throw - we don't want to block auth if DB save fails
-      return
+      return false
     }
+
+    return true
   } catch (error: any) {
     console.error("[AUTH] Error saving user to database:", error.message)
-    // Don't throw - we don't want to block auth if DB save fails
+    return false
   }
 }
 

@@ -10,7 +10,7 @@ export interface Tour {
   // Streaming fields
   streamUrl?: string // YouTube Live URL or other streaming service URL
   isLive?: boolean // Whether the tour is currently streaming
-  streamType?: "youtube" | "twitch" | "custom" // Type of streaming service
+  streamType?: "youtube" | "twitch" | "agora" | "custom" // Type of streaming service
   description?: string // Tour description
   // Additional fields from Civitatis
   itinerary?: string // Detailed itinerary description

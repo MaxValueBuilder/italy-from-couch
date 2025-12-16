@@ -77,6 +77,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Tour not found" }, { status: 404 })
     }
 
+    // Resolve guideId: if guideId is a guide name (from tour.guide), find the guide's _id
+    let resolvedGuideId = guideId
+    const guides = db.collection("guides")
+    
+    // If guideId is not a MongoDB ObjectId (24 hex chars), it's likely a guide name
+    if (!/^[0-9a-fA-F]{24}$/.test(guideId)) {
+      // Try to find guide by name
+      const guide = await guides.findOne({ name: guideId })
+      
+      if (guide) {
+        resolvedGuideId = guide._id.toString()
+      } else {
+        // If guide not found by name, return error
+        return NextResponse.json(
+          { error: `Guide "${guideId}" not found` },
+          { status: 404 }
+        )
+      }
+    }
+    // If guideId is already a valid ObjectId, use it as-is
+
     // Check for existing booking at the same time
     const scheduledDate = new Date(scheduledAt)
     const existingBooking = await bookings.findOne({
@@ -92,11 +113,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create booking
+    // Create booking with resolved guide _id
     const bookingData = {
       userId,
       tourId,
-      guideId,
+      guideId: resolvedGuideId, // Store guide's _id (not name)
       scheduledAt: scheduledDate,
       timezone: timezone || getCityTimezone(tour.city),
       duration: duration || tour.duration || 90,

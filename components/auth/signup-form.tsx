@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation"
 import { signUp, signInWithGoogle } from "@/lib/auth/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
 
@@ -14,6 +16,7 @@ export function SignUpForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+  const [role, setRole] = useState<"user" | "guide">("user")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -35,8 +38,13 @@ export function SignUpForm() {
     }
 
     try {
-      await signUp(email, password, name)
-      router.push("/")
+      await signUp(email, password, name, role)
+      // Redirect based on role
+      if (role === "guide") {
+        router.push("/guides/complete-profile")
+      } else {
+        router.push("/")
+      }
       router.refresh()
     } catch (err: any) {
       setError(err.message || "Failed to create account. Please try again.")
@@ -50,6 +58,8 @@ export function SignUpForm() {
 
     try {
       await signInWithGoogle()
+      // Google signup defaults to "user" role
+      // Guides can update their role later or contact support
       router.push("/")
       router.refresh()
     } catch (err: any) {
@@ -118,6 +128,38 @@ export function SignUpForm() {
           minLength={6}
           className="py-6"
         />
+      </div>
+
+      <div className="space-y-4">
+        <label className="text-md font-semibold text-foreground">I want to sign up as</label>
+        <RadioGroup
+        
+          value={role}
+          onValueChange={(value) => setRole(value as "user" | "guide")}
+          disabled={loading}
+          className="space-y-3 mt-4"
+        >
+          <div className="flex items-start space-x-3">
+            <RadioGroupItem value="user" id="role-user" className="mt-1" />
+            <Label
+              htmlFor="role-user"
+              className="flex-1 cursor-pointer"
+            >
+              <div className="font-semibold">Tour Viewer</div>
+              <div className="text-sm text-muted-foreground">Book and watch live tours</div>
+            </Label>
+          </div>
+          <div className="flex items-start space-x-3">
+            <RadioGroupItem value="guide" id="role-guide" className="mt-1" />
+            <Label
+              htmlFor="role-guide"
+              className="flex-1 cursor-pointer"
+            >
+              <div className="font-semibold mb-1">Guide</div>
+              <div className="text-sm text-muted-foreground">Lead live streaming tours</div>
+            </Label>
+          </div>
+        </RadioGroup>
       </div>
 
       <Button type="submit" className="w-full py-6 bg-orange-600 hover:bg-orange-700 text-white text-md" disabled={loading}>
