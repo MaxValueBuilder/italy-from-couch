@@ -86,6 +86,13 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date(),
     }
 
+    console.log("[API] Creating stream session:", {
+      bookingId,
+      tourId: booking.tourId,
+      guideId: booking.guideId,
+      channelName,
+    })
+
     await streamSessions.updateOne(
       { bookingId },
       { $set: sessionData },
@@ -93,6 +100,12 @@ export async function POST(request: NextRequest) {
     )
 
     // Update booking with stream info
+    console.log("[API] Updating booking status to 'live':", {
+      bookingId,
+      tourId: booking.tourId,
+      status: "live",
+    })
+
     await bookings.updateOne(
       { _id: new ObjectId(bookingId) },
       {

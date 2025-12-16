@@ -31,6 +31,8 @@ export default function TourDetailPage() {
     bookingId?: string
   } | null>(null)
 
+  console.log("[TOUR] Component rendered, tourId:", tourId, "loading:", loading, "hasTour:", !!tour)
+
   useEffect(() => {
     console.log("[TOUR] useEffect triggered, tourId:", tourId)
     
@@ -99,7 +101,7 @@ export default function TourDetailPage() {
       console.log("[TOUR] Cleaning up interval")
       clearInterval(interval)
     }
-  }, [tourId, streamInfo?.isActive])
+  }, [tourId])
 
   if (loading) {
     return (
