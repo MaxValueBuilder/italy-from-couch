@@ -31,10 +31,15 @@ export default function TourDetailPage() {
     bookingId?: string
   } | null>(null)
 
-  console.log("[TOUR] Component rendered, tourId:", tourId, "loading:", loading, "hasTour:", !!tour)
+  // Force console logs to appear
+  if (typeof window !== "undefined") {
+    console.log("[TOUR] Component rendered, tourId:", tourId, "loading:", loading, "hasTour:", !!tour)
+    console.log("[TOUR] Window is defined, component is client-side")
+  }
 
   useEffect(() => {
     console.log("[TOUR] useEffect triggered, tourId:", tourId)
+    console.log("[TOUR] useEffect is running on client side")
     
     async function loadTour() {
       try {
@@ -104,12 +109,15 @@ export default function TourDetailPage() {
   }, [tourId])
 
   if (loading) {
+    console.log("[TOUR] Rendering loading state")
     return (
       <>
         <Header />
         <main className="min-h-screen flex items-center justify-center bg-background">
           <div className="text-center space-y-4">
             <p className="text-muted-foreground">Loading tour...</p>
+            {/* Debug: This should appear if component is rendering */}
+            <p className="text-xs text-muted-foreground">Tour ID: {tourId}</p>
           </div>
         </main>
         <Footer />
@@ -132,9 +140,18 @@ export default function TourDetailPage() {
     )
   }
 
+  // Debug: Add visible indicator
+  console.log("[TOUR] Rendering main content, streamInfo:", streamInfo)
+
   return (
     <>
       <Header />
+      {/* Debug indicator - remove after testing */}
+      {process.env.NODE_ENV === "development" && (
+        <div className="bg-yellow-100 dark:bg-yellow-900 p-2 text-xs text-center">
+          DEBUG: Tour ID: {tourId} | Stream Active: {streamInfo?.isActive ? "YES" : "NO"} | BookingId: {streamInfo?.bookingId || "none"}
+        </div>
+      )}
       <main className="bg-background">
         {/* Hero Section with Tour Image */}
         <section className="relative h-64 md:h-96 overflow-hidden">
