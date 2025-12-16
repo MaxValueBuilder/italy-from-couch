@@ -41,17 +41,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Guide not found" }, { status: 404 })
     }
 
-    // Verify user exists and is a guide
+    // Verify user exists
     const user = await users.findOne({ uid: userId })
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
-    }
-
-    if (user.role !== "guide") {
-      return NextResponse.json(
-        { error: "User is not a guide" },
-        { status: 400 }
-      )
     }
 
     // Check if guide is already linked to another user
@@ -63,10 +56,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Link guide to user
+    // Link guide to user and ensure role is set to "guide"
     await users.updateOne(
       { uid: userId },
-      { $set: { guideId: guideId, updatedAt: new Date() } }
+      { 
+        $set: { 
+          guideId: guideId, 
+          role: "guide", // Ensure role is set to "guide" when linking
+          updatedAt: new Date() 
+        } 
+      }
     )
 
     return NextResponse.json({

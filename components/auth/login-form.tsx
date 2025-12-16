@@ -19,34 +19,57 @@ export function LoginForm() {
 
   // Handle redirect after login - wait a bit for userInfo to load
   useEffect(() => {
+    console.log("[LOGIN] useEffect triggered:", { 
+      hasUserInfo: !!userInfo, 
+      loading, 
+      userInfoRole: userInfo?.role,
+      userInfoGuideId: userInfo?.guideId 
+    })
+    
     if (userInfo && !loading) {
+      console.log("[LOGIN] UserInfo available, preparing redirect...")
       const redirect = searchParams.get("redirect")
       if (redirect) {
+        console.log("[LOGIN] Redirecting to:", redirect)
         router.push(redirect)
+        setLoading(false)
       } else if (userInfo.role === "guide") {
         // Check if guide has completed profile (has guideId)
         // If not, redirect to complete profile page
         if (!userInfo.guideId) {
+          console.log("[LOGIN] Guide without profile, redirecting to complete-profile")
           router.push("/guides/complete-profile")
         } else {
+          console.log("[LOGIN] Guide with profile, redirecting to dashboard")
           router.push("/guides/dashboard")
         }
+        setLoading(false)
       } else {
+        console.log("[LOGIN] Regular user, redirecting to home")
         router.push("/")
+        setLoading(false)
       }
+    } else if (userInfo && loading) {
+      console.log("[LOGIN] UserInfo available but loading is still true - setting loading to false")
+      setLoading(false)
     }
   }, [userInfo, loading, searchParams, router])
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log("[LOGIN] Starting email login...")
     setLoading(true)
     setError("")
 
     try {
-      await signIn(email, password)
+      console.log("[LOGIN] Calling signIn...")
+      const user = await signIn(email, password)
+      console.log("[LOGIN] signIn completed, user:", user?.uid)
       // Redirect will be handled by useEffect when userInfo is loaded
       // Don't redirect here to avoid race condition
+      // Note: loading will be set to false when userInfo is available and redirect happens
     } catch (err: any) {
+      console.error("[LOGIN] Sign in error:", err)
       setError(err.message || "Failed to sign in. Please check your credentials.")
       setLoading(false)
     }

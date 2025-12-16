@@ -47,20 +47,24 @@ export default function GuideDashboardPage() {
     }
 
     // Check if user is a guide
+    // Use guideId as the definitive indicator (more reliable than role field)
     if (user && userInfo) {
-      if (userInfo.role !== "guide") {
-        // User is not a guide, redirect to home
-        router.push("/")
+      // If user has a guideId, they are a guide (regardless of role field)
+      if (userInfo.guideId) {
+        // Guide has profile, load bookings
+        loadBookings()
         return
       }
       
-      // If guide hasn't completed profile (no guideId), redirect to complete profile page
-      if (!userInfo.guideId) {
+      // If user doesn't have guideId but has role "guide", they need to complete profile
+      if (userInfo.role === "guide") {
         router.push("/guides/complete-profile")
         return
       }
       
-      loadBookings()
+      // User is not a guide, redirect to home
+      router.push("/")
+      return
     }
   }, [user, userInfo, authLoading, router])
 

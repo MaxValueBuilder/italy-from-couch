@@ -39,11 +39,15 @@ export async function signUp(
 // Sign in with email/password
 export async function signIn(email: string, password: string) {
   try {
+    console.log("[AUTH] Starting sign in with email:", email)
     const userCredential = await signInWithEmailAndPassword(auth, email, password)
     const user = userCredential.user
+    console.log("[AUTH] Firebase sign in successful, uid:", user.uid)
 
     // Save/update user to MongoDB (in case user doesn't exist in DB)
-    await saveUserToDatabase(user)
+    console.log("[AUTH] Saving user to database...")
+    const saveResult = await saveUserToDatabase(user)
+    console.log("[AUTH] User saved to database:", saveResult)
 
     return user
   } catch (error: any) {
@@ -80,6 +84,7 @@ async function saveUserToDatabase(user: User, name?: string, role?: "user" | "gu
   }
 
   try {
+    console.log("[AUTH] Saving user to database:", { uid: userData.uid, email: userData.email, role: userData.role })
     const response = await fetch("/api/auth/save-user", {
       method: "POST",
       headers: {
@@ -88,12 +93,15 @@ async function saveUserToDatabase(user: User, name?: string, role?: "user" | "gu
       body: JSON.stringify(userData),
     })
 
+    console.log("[AUTH] Save user response status:", response.status)
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
       console.error("[AUTH] Failed to save user to database:", response.status, errorData)
       return false
     }
 
+    const result = await response.json()
+    console.log("[AUTH] User saved to database successfully:", result)
     return true
   } catch (error: any) {
     console.error("[AUTH] Error saving user to database:", error.message)

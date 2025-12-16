@@ -5,8 +5,10 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { uid, email, name, photoURL, provider, role } = body
+    console.log("[API] Save user request:", { uid, email, role })
 
     if (!uid || !email) {
+      console.log("[API] Missing required fields")
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
@@ -16,6 +18,7 @@ export async function POST(request: NextRequest) {
 
     // Get existing user to preserve role if not provided
     const existingUser = await users.findOne({ uid })
+    console.log("[API] Existing user:", existingUser ? { uid: existingUser.uid, role: existingUser.role, guideId: existingUser.guideId } : "not found")
     const userRole = role || existingUser?.role || "user"
 
     const userData = {
@@ -29,6 +32,7 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date(),
     }
 
+    console.log("[API] Saving user data:", { uid, email, role: userRole, guideId: userData.guideId })
     await users.updateOne(
       { uid },
       {
@@ -40,6 +44,7 @@ export async function POST(request: NextRequest) {
       { upsert: true }
     )
 
+    console.log("[API] User saved successfully")
     return NextResponse.json({ success: true, role: userRole })
   } catch (error: any) {
     console.error("[API] Error saving user:", error.message)

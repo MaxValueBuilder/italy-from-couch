@@ -82,10 +82,17 @@ export async function POST(request: NextRequest) {
     const guideId = result.insertedId.toString()
 
     // If userId is provided, automatically link the guide profile to the user
+    // Also update role to "guide" to ensure consistency
     if (userId) {
       await users.updateOne(
         { uid: userId },
-        { $set: { guideId: guideId, updatedAt: new Date() } }
+        { 
+          $set: { 
+            guideId: guideId, 
+            role: "guide", // Ensure role is set to "guide" when guide profile is created
+            updatedAt: new Date() 
+          } 
+        }
       )
     }
 
