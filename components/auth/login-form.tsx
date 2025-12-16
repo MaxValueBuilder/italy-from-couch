@@ -14,16 +14,19 @@ export function LoginForm() {
   const { userInfo } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [emailLoading, setEmailLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState("")
 
   // Handle redirect after login - wait a bit for userInfo to load
   useEffect(() => {
-    if (userInfo && !loading) {
+    const isLoading = emailLoading || googleLoading
+    if (userInfo && !isLoading) {
       const redirect = searchParams.get("redirect")
       if (redirect) {
         router.push(redirect)
-        setLoading(false)
+        setEmailLoading(false)
+        setGoogleLoading(false)
         return
       }
       
@@ -42,16 +45,18 @@ export function LoginForm() {
         // Regular user - redirect to tours page
         router.push("/tours")
       }
-      setLoading(false)
-    } else if (userInfo && loading) {
-      setLoading(false)
+      setEmailLoading(false)
+      setGoogleLoading(false)
+    } else if (userInfo && isLoading) {
+      setEmailLoading(false)
+      setGoogleLoading(false)
     }
-  }, [userInfo, loading, searchParams, router])
+  }, [userInfo, emailLoading, googleLoading, searchParams, router])
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     console.log("[LOGIN] Starting email login...")
-    setLoading(true)
+    setEmailLoading(true)
     setError("")
 
     try {
@@ -64,12 +69,12 @@ export function LoginForm() {
     } catch (err: any) {
       console.error("[LOGIN] Sign in error:", err)
       setError(err.message || "Failed to sign in. Please check your credentials.")
-      setLoading(false)
+      setEmailLoading(false)
     }
   }
 
   const handleGoogleLogin = async () => {
-    setLoading(true)
+    setGoogleLoading(true)
     setError("")
 
     try {
@@ -78,7 +83,7 @@ export function LoginForm() {
       // Don't redirect here to avoid race condition
     } catch (err: any) {
       setError(err.message || "Failed to sign in with Google.")
-      setLoading(false)
+      setGoogleLoading(false)
     }
   }
 
@@ -98,7 +103,7 @@ export function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          disabled={loading}
+          disabled={emailLoading || googleLoading}
           className="py-6"
         />
       </div>
@@ -111,13 +116,13 @@ export function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          disabled={loading}
+          disabled={emailLoading || googleLoading}
           className="py-6"
         />
       </div>
 
-      <Button type="submit" className="w-full py-6 bg-orange-600 hover:bg-orange-700 text-white text-md" disabled={loading}>
-        {loading ? (
+      <Button type="submit" className="w-full py-6 bg-orange-600 hover:bg-orange-700 text-white text-md" disabled={emailLoading || googleLoading}>
+        {emailLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Signing in...
@@ -141,9 +146,9 @@ export function LoginForm() {
         variant="outline"
         className="w-full py-6 text-md hover:text-orange-600 hover:bg-orange-50"
         onClick={handleGoogleLogin}
-        disabled={loading}
+        disabled={emailLoading || googleLoading}
       >
-        {loading ? (
+        {googleLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Signing in...

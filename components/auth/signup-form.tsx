@@ -17,23 +17,24 @@ export function SignUpForm() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [role, setRole] = useState<"user" | "guide">("user")
-  const [loading, setLoading] = useState(false)
+  const [emailLoading, setEmailLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState("")
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
+    setEmailLoading(true)
     setError("")
 
     if (password !== confirmPassword) {
       setError("Passwords do not match")
-      setLoading(false)
+      setEmailLoading(false)
       return
     }
 
     if (password.length < 6) {
       setError("Password must be at least 6 characters")
-      setLoading(false)
+      setEmailLoading(false)
       return
     }
 
@@ -48,12 +49,12 @@ export function SignUpForm() {
       router.refresh()
     } catch (err: any) {
       setError(err.message || "Failed to create account. Please try again.")
-      setLoading(false)
+      setEmailLoading(false)
     }
   }
 
   const handleGoogleSignUp = async () => {
-    setLoading(true)
+    setGoogleLoading(true)
     setError("")
 
     try {
@@ -64,7 +65,7 @@ export function SignUpForm() {
       router.refresh()
     } catch (err: any) {
       setError(err.message || "Failed to sign up with Google.")
-      setLoading(false)
+      setGoogleLoading(false)
     }
   }
 
@@ -84,7 +85,7 @@ export function SignUpForm() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          disabled={loading}
+          disabled={emailLoading || googleLoading}
           className="py-6"
         />
       </div>
@@ -97,7 +98,7 @@ export function SignUpForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          disabled={loading}
+          disabled={emailLoading || googleLoading}
           className="py-6"
         />
       </div>
@@ -110,7 +111,7 @@ export function SignUpForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          disabled={loading}
+          disabled={emailLoading || googleLoading}
           minLength={6}
           className="py-6"
         />
@@ -124,7 +125,7 @@ export function SignUpForm() {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
-          disabled={loading}
+          disabled={emailLoading || googleLoading}
           minLength={6}
           className="py-6"
         />
@@ -136,7 +137,7 @@ export function SignUpForm() {
         
           value={role}
           onValueChange={(value) => setRole(value as "user" | "guide")}
-          disabled={loading}
+          disabled={emailLoading || googleLoading}
           className="space-y-3 mt-4"
         >
           <div className="flex items-start space-x-3">
@@ -162,8 +163,8 @@ export function SignUpForm() {
         </RadioGroup>
       </div>
 
-      <Button type="submit" className="w-full py-6 bg-orange-600 hover:bg-orange-700 text-white text-md" disabled={loading}>
-        {loading ? (
+      <Button type="submit" className="w-full py-6 bg-orange-600 hover:bg-orange-700 text-white text-md" disabled={emailLoading || googleLoading}>
+        {emailLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Creating account...
@@ -187,9 +188,9 @@ export function SignUpForm() {
         variant="outline"
         className="w-full py-6 text-md hover:text-orange-600 hover:bg-orange-50"
         onClick={handleGoogleSignUp}
-        disabled={loading}
+        disabled={emailLoading || googleLoading}
       >
-        {loading ? (
+        {googleLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Signing up...
