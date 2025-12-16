@@ -32,23 +32,32 @@ export default function TourDetailPage() {
   } | null>(null)
 
   useEffect(() => {
+    console.log("[TOUR] useEffect triggered, tourId:", tourId)
+    
     async function loadTour() {
       try {
+        console.log("[TOUR] Loading tour data for:", tourId)
         const tourData = await fetchTourById(tourId)
+        console.log("[TOUR] Tour data loaded:", tourData?._id)
         setTour(tourData)
 
         // Check for active stream for this tour
-        try {
-          console.log("[TOUR] Checking for active stream for tour:", tourId)
-          const streamData = await getTourStreamInfo(tourId)
-          console.log("[TOUR] Stream info:", streamData)
-          setStreamInfo({
-            isActive: streamData.isActive,
-            bookingId: streamData.bookingId,
-          })
-        } catch (error) {
-          console.error("[TOUR] Error loading stream info:", error)
-          setStreamInfo({ isActive: false })
+        if (tourId) {
+          try {
+            console.log("[TOUR] Checking for active stream for tour:", tourId)
+            const streamData = await getTourStreamInfo(tourId)
+            console.log("[TOUR] Stream info received:", streamData)
+            setStreamInfo({
+              isActive: streamData.isActive,
+              bookingId: streamData.bookingId,
+            })
+          } catch (error: any) {
+            console.error("[TOUR] Error loading stream info:", error)
+            console.error("[TOUR] Error details:", error.message, error.stack)
+            setStreamInfo({ isActive: false })
+          }
+        } else {
+          console.warn("[TOUR] No tourId provided, skipping stream check")
         }
 
         // Load related tours
@@ -67,22 +76,30 @@ export default function TourDetailPage() {
 
     // Poll for stream updates every 5 seconds
     const interval = setInterval(async () => {
+      if (!tourId) return
+      
       try {
+        console.log("[TOUR] Polling for stream updates, tourId:", tourId)
         const streamData = await getTourStreamInfo(tourId)
-        if (streamData.isActive !== streamInfo?.isActive) {
-          console.log("[TOUR] Stream status changed:", streamData)
+        const wasActive = streamInfo?.isActive
+        if (streamData.isActive !== wasActive) {
+          console.log("[TOUR] Stream status changed:", { wasActive, isActive: streamData.isActive, streamData })
         }
         setStreamInfo({
           isActive: streamData.isActive,
           bookingId: streamData.bookingId,
         })
-      } catch (error) {
+      } catch (error: any) {
         console.error("[TOUR] Error polling stream info:", error)
+        console.error("[TOUR] Polling error details:", error.message)
       }
     }, 5000)
 
-    return () => clearInterval(interval)
-  }, [tourId])
+    return () => {
+      console.log("[TOUR] Cleaning up interval")
+      clearInterval(interval)
+    }
+  }, [tourId, streamInfo?.isActive])
 
   if (loading) {
     return (
@@ -158,15 +175,28 @@ export default function TourDetailPage() {
 
               {/* Video Player */}
               <div className="space-y-4">
-                <VideoPlayer
-                  streamUrl={tour.streamUrl}
-                  streamType={streamInfo?.isActive ? "agora" : (tour.streamType || "youtube")}
-                  isLive={streamInfo?.isActive || tour.isLive || false}
-                  title={tour.title}
-                  thumbnail={tour.images && tour.images.length > 0 ? tour.images[0] : undefined}
-                  bookingId={streamInfo?.bookingId}
-                  userId={user?.uid}
-                />
+                {(() => {
+                  const streamType = streamInfo?.isActive ? "agora" : (tour.streamType || "youtube")
+                  const isLive = streamInfo?.isActive || tour.isLive || false
+                  console.log("[TOUR] Rendering VideoPlayer:", {
+                    streamType,
+                    isLive,
+                    bookingId: streamInfo?.bookingId,
+                    streamInfoActive: streamInfo?.isActive,
+                    hasStreamInfo: !!streamInfo,
+                  })
+                  return (
+                    <VideoPlayer
+                      streamUrl={tour.streamUrl}
+                      streamType={streamType}
+                      isLive={isLive}
+                      title={tour.title}
+                      thumbnail={tour.images && tour.images.length > 0 ? tour.images[0] : undefined}
+                      bookingId={streamInfo?.bookingId}
+                      userId={user?.uid}
+                    />
+                  )
+                })()}
 
                 {/* Stream Status */}
                 <div className="flex items-center justify-between p-4 bg-card border border-border rounded-lg">

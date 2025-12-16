@@ -48,15 +48,22 @@ export function VideoPlayer({
 
   // Fetch Agora stream configuration
   useEffect(() => {
+    console.log("[VIDEO PLAYER] useEffect triggered:", { streamType, bookingId, hasBookingId: !!bookingId })
     if (streamType === "agora" && bookingId) {
+      console.log("[VIDEO PLAYER] Fetching Agora stream config for bookingId:", bookingId)
       fetchAgoraStreamConfig()
+    } else {
+      console.log("[VIDEO PLAYER] Not fetching Agora config:", { streamType, bookingId })
     }
   }, [streamType, bookingId, userId])
 
   const fetchAgoraStreamConfig = async () => {
     try {
+      console.log("[VIDEO PLAYER] Starting to fetch Agora config for bookingId:", bookingId)
       setIsLoading(true)
-      const response = await fetch(`/api/streams/${bookingId}`, {
+      const url = `/api/streams/${bookingId}`
+      console.log("[VIDEO PLAYER] Fetching from:", url)
+      const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -66,21 +73,28 @@ export function VideoPlayer({
           userId: userId || undefined,
         }),
       })
+      console.log("[VIDEO PLAYER] Response status:", response.status, response.ok)
       if (!response.ok) {
-        throw new Error("Failed to fetch stream configuration")
+        const errorData = await response.json().catch(() => ({}))
+        console.error("[VIDEO PLAYER] Response error:", errorData)
+        throw new Error(errorData.message || "Failed to fetch stream configuration")
       }
       const data = await response.json()
+      console.log("[VIDEO PLAYER] Stream config received:", { success: data.success, hasAppId: !!data.appId, hasChannel: !!data.channelName, hasToken: !!data.token })
       if (data.success && data.appId && data.channelName && data.token) {
         setAgoraConfig({
           appId: data.appId,
           channelName: data.channelName,
           token: data.token,
         })
+        console.log("[VIDEO PLAYER] Agora config set successfully")
       } else {
+        console.error("[VIDEO PLAYER] Invalid stream configuration:", data)
         throw new Error("Invalid stream configuration")
       }
     } catch (error: any) {
-      console.error("Error fetching Agora config:", error)
+      console.error("[VIDEO PLAYER] Error fetching Agora config:", error)
+      console.error("[VIDEO PLAYER] Error details:", error.message, error.stack)
       setHasError(true)
     } finally {
       setIsLoading(false)
