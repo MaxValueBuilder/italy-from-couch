@@ -49,7 +49,7 @@ export function ContactSection() {
                   name="name"
                   placeholder={t("contact.namePlaceholder")}
                   required
-                  className="w-full"
+                  className="w-full py-6"
                 />
               </div>
 
@@ -60,7 +60,7 @@ export function ContactSection() {
                   name="email"
                   placeholder={t("contact.emailPlaceholder")}
                   required
-                  className="w-full"
+                  className="w-full py-6"
                 />
               </div>
 
@@ -75,7 +75,7 @@ export function ContactSection() {
                 />
               </div>
 
-              <Button type="submit" className="w-full bg-orange-600 hover:bg-orange-700 text-white">
+              <Button type="submit" className="w-full bg-orange-600 hover:bg-orange-700 text-white py-6">
                 {submitted ? t("contact.submitSuccess") : t("contact.submitButton")}
               </Button>
             </form>
