@@ -301,9 +301,26 @@ export function GuideBroadcast({
 
       {/* Stream Info */}
       {isStreaming && (
-        <div className="text-center text-sm text-muted-foreground">
-          <p>Streaming to channel: {channelName}</p>
-          <p>Status: {connectionState}</p>
+        <div className="text-center text-sm text-muted-foreground p-4 bg-muted/50 rounded-lg space-y-2">
+          <p className="font-semibold text-foreground">Live Streaming Info</p>
+          <div className="grid grid-cols-2 gap-2 text-left text-xs">
+            <span className="text-muted-foreground">Channel:</span>
+            <code className="bg-background px-1 rounded">{channelName}</code>
+            <span className="text-muted-foreground">Status:</span>
+            <span className={cn(
+              "font-medium",
+              connectionState === "CONNECTED" ? "text-green-600" : "text-yellow-600"
+            )}>{connectionState}</span>
+          </div>
+          
+          <div className="mt-4 pt-4 border-t border-border">
+            <p className="font-semibold text-foreground mb-1">Professional Ingest (LiveU)</p>
+            <p className="text-[10px] mb-2">Use these settings if streaming via hardware encoder:</p>
+            <div className="space-y-1 text-left text-[10px]">
+              <p><span className="text-muted-foreground">RTMP URL:</span> <code>rtmp://push.agoraio.cn/live/</code></p>
+              <p><span className="text-muted-foreground">Stream Key:</span> <code className="break-all">{channelName}?token={token}</code></p>
+            </div>
+          </div>
         </div>
       )}
     </div>

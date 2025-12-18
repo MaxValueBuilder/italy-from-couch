@@ -61,6 +61,18 @@ npm install agora-access-token
 
    ⚠️ **Important:** Never commit your App Certificate to version control. Keep it secure!
 
+## Professional Ingest (LiveU Solo / Hardware Encoders)
+
+For professional guides using hardware like **LiveU Solo**, you can push an RTMP stream directly to Agora.
+
+### Configuration for LiveU Solo:
+
+1. **Protocol:** RTMP/RTMPS
+2. **Server URL:** `rtmp://push.agoraio.cn/live/` (or your regional Agora push URL)
+3. **Stream Key:** `{channelName}?token={token}`
+
+*Note: You must enable "RTMP Ingest" in your Agora Console under Project > Features > Media Push.*
+
 ## How It Works
 
 ### Architecture

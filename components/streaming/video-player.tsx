@@ -26,6 +26,8 @@ interface VideoPlayerProps {
   // Agora-specific props
   bookingId?: string
   userId?: string
+  // Level 3 Fallback
+  fallbackUrl?: string // URL to pre-recorded clip for stalls
 }
 
 export function VideoPlayer({
@@ -36,15 +38,39 @@ export function VideoPlayer({
   thumbnail,
   bookingId,
   userId,
+  fallbackUrl,
 }: VideoPlayerProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [showFallback, setShowFallback] = useState(false)
+  const [stallTimer, setStallTimer] = useState<NodeJS.Timeout | null>(null)
   const [agoraConfig, setAgoraConfig] = useState<{
     appId: string
     channelName: string
     token: string
+    fallbackUrl?: string
   } | null>(null)
+
+  // Level 3: Handle stream stall with a timer to switch to fallback
+  const handleStreamStall = (stalled: boolean) => {
+    if (stalled) {
+      // Start a 10-second timer to show fallback if stream doesn't recover
+      const timer = setTimeout(() => {
+        if (fallbackUrl || agoraConfig?.fallbackUrl) {
+          setShowFallback(true)
+        }
+      }, 10000)
+      setStallTimer(timer)
+    } else {
+      // Stream recovered
+      if (stallTimer) {
+        clearTimeout(stallTimer)
+        setStallTimer(null)
+      }
+      setShowFallback(false)
+    }
+  }
 
   // Fetch Agora stream configuration
   useEffect(() => {
@@ -78,6 +104,7 @@ export function VideoPlayer({
           appId: data.appId,
           channelName: data.channelName,
           token: data.token,
+          fallbackUrl: data.fallbackUrl,
         })
       } else {
         throw new Error("Invalid stream configuration")
@@ -273,11 +300,38 @@ export function VideoPlayer({
       )
     }
 
+    // Level 3 Fallback Content
+    if (showFallback && (fallbackUrl || agoraConfig.fallbackUrl)) {
+      return (
+        <div className="w-full aspect-video bg-black rounded-lg overflow-hidden relative">
+          <video
+            src={fallbackUrl || agoraConfig.fallbackUrl}
+            autoPlay
+            loop
+            muted
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute top-4 left-4 z-10">
+            <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-semibold text-white flex items-center gap-2">
+              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
+              <span>STABILIZING SIGNAL...</span>
+            </div>
+          </div>
+          <div className="absolute bottom-4 right-4 z-10">
+            <p className="text-[10px] text-white/50 bg-black/40 px-2 py-1 rounded">
+              You are watching a recorded clip while we restore the live feed.
+            </p>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <AgoraViewer
         appId={agoraConfig.appId}
         channelName={agoraConfig.channelName}
         token={agoraConfig.token}
+        onStreamStalled={handleStreamStall}
       />
     )
   }

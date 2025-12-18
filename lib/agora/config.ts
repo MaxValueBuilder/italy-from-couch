@@ -47,5 +47,12 @@ export const videoConfig = {
     resolution: { width: 1280, height: 720 }, // 720p
     frameRate: 30,
   },
+  // Level 1: Latency and buffering (from Lorenzo's request)
+  latency: {
+    liveStreaming: {
+      lowLatency: false, // Set to false to allow more buffering for resilience
+      audienceLatencyLevel: 2, // 1: Ultra-low latency, 2: Standard latency with better resilience
+    }
+  }
 }
 

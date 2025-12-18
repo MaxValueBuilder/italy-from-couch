@@ -53,6 +53,7 @@ export async function GET(
       startedAt: session.startedAt ? new Date(session.startedAt).toISOString() : null,
       participantCount: session.participantCount || 0,
       appId: process.env.AGORA_APP_ID,
+      fallbackUrl: booking.fallbackUrl || null, // Add fallback URL if available
     }
 
     return NextResponse.json(response)
@@ -119,12 +120,17 @@ export async function POST(
     const uid = userId ? parseInt(userId.slice(-8), 16) || 0 : 0
     const token = generateRtcToken(channelName, uid, role, 86400)
 
+    // Get tour fallback video if it exists
+    const tours = db.collection("tours")
+    const tour = await tours.findOne({ _id: new ObjectId(booking.tourId) })
+
     return NextResponse.json({
       success: true,
       token,
       channelName,
       uid,
       appId: process.env.AGORA_APP_ID,
+      fallbackUrl: tour?.fallbackUrl || booking.fallbackUrl || null,
     })
   } catch (error: any) {
     console.error("Error generating stream token:", error)

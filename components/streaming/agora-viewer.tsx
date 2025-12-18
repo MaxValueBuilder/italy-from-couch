@@ -10,6 +10,8 @@ interface AgoraViewerProps {
   channelName: string
   token: string
   className?: string
+  onStreamStalled?: (isStalled: boolean) => void
+  onCriticalError?: () => void
 }
 
 export function AgoraViewer({
@@ -22,6 +24,9 @@ export function AgoraViewer({
   const [error, setError] = useState<string | null>(null)
   const [connectionState, setConnectionState] = useState<string>("disconnected")
   const [hasVideo, setHasVideo] = useState(false)
+  const [networkQuality, setNetworkQuality] = useState<number>(0) // 0-8, 1 is best, >4 is bad
+  const [isStalled, setIsStalled] = useState(false)
+  const [exception, setException] = useState<string | null>(null)
 
   const clientRef = useRef<IAgoraRTCClient | null>(null)
   const remoteVideoTrackRef = useRef<IRemoteVideoTrack | null>(null)
@@ -151,6 +156,21 @@ export function AgoraViewer({
 
       {/* Video Container */}
       <div ref={videoContainerRef} className="w-full h-full" />
+
+      {/* Level 2: Intelligent Stall Overlay */}
+      {(isStalled || networkQuality > 5) && hasVideo && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px] z-20">
+          <div className="bg-background/80 px-6 py-4 rounded-xl shadow-2xl border border-white/20 text-center animate-in fade-in zoom-in duration-300">
+            <div className="flex items-center gap-3 text-orange-500 mb-2 justify-center">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span className="font-semibold">Adjusting connection...</span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              The signal is weak, we are stabilizing the stream.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* No Video State */}
       {!isLoading && !hasVideo && connectionState === "CONNECTED" && (
