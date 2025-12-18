@@ -4,6 +4,8 @@ import { useEffect, useState } from "react"
 import { Play, Loader2 } from "lucide-react"
 import dynamic from "next/dynamic"
 
+import { EmojiReactions } from "./emoji-reactions"
+
 // Dynamically import AgoraViewer to prevent SSR (Agora SDK requires browser APIs)
 const AgoraViewer = dynamic(() => import("./agora-viewer").then((mod) => ({ default: mod.AgoraViewer })), {
   ssr: false,
@@ -327,12 +329,15 @@ export function VideoPlayer({
     }
 
     return (
-      <AgoraViewer
-        appId={agoraConfig.appId}
-        channelName={agoraConfig.channelName}
-        token={agoraConfig.token}
-        onStreamStalled={handleStreamStall}
-      />
+      <div className="relative w-full aspect-video">
+        <AgoraViewer
+          appId={agoraConfig.appId}
+          channelName={agoraConfig.channelName}
+          token={agoraConfig.token}
+          onStreamStalled={handleStreamStall}
+        />
+        <EmojiReactions />
+      </div>
     )
   }
 

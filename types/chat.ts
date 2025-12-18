@@ -10,6 +10,14 @@ export interface ChatMessage {
   updatedAt?: Date
 }
 
+export interface EmojiReaction {
+  bookingId: string
+  userId: string
+  userName: string
+  emoji: string
+  timestamp: Date
+}
+
 export interface TypingUser {
   userId: string
   userName: string

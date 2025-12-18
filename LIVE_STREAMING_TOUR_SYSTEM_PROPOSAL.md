@@ -512,3 +512,6 @@ The system is designed to handle growth from initial launch through scale, with 
 - Scalable infrastructure
 - Good documentation and support
 
+
+
+Professional Ingest: If you go to the Guide Dashboard, you can now see the RTMP URL and Stream Key. You can copy these into your LiveU Solo Pro to test high-quality hardware streaming.

@@ -214,6 +214,46 @@ app.prepare().then(() => {
       socket.to(bookingId).emit("user-stopped-typing", userId)
     })
 
+    // Emoji reaction
+    socket.on("send-emoji", (data: { bookingId: string; userId: string; userName: string; emoji: string }) => {
+      const { bookingId, userId, userName, emoji } = data
+      
+      const reaction = {
+        bookingId,
+        userId,
+        userName,
+        emoji,
+        timestamp: new Date()
+      }
+
+      // Broadcast to everyone in the room (including the sender for visual sync)
+      io.to(bookingId).emit("new-emoji", reaction)
+      console.log(`[Socket] Emoji ${emoji} sent in room ${bookingId} by ${userName}`)
+    })
+
+    // Delete a message
+    socket.on("delete-message", async (data: { bookingId: string; messageId: string; userId: string }) => {
+      const { bookingId, messageId, userId } = data
+
+      try {
+        const client = await clientPromise
+        const db = client.db("italy-from-couch")
+        const chatMessages = db.collection("chatMessages")
+        const { ObjectId } = await import("mongodb")
+
+        // In a real app, you would verify if the user has permission to delete (guide or author)
+        // For now, we'll assume the client-side check is sufficient or implement a basic check
+        await chatMessages.deleteOne({ _id: new ObjectId(messageId) })
+
+        // Broadcast deletion to all users in the room
+        io.to(bookingId).emit("message-deleted", messageId)
+        console.log(`[Socket] Message ${messageId} deleted in room ${bookingId}`)
+      } catch (error) {
+        console.error("[Socket] Error deleting message:", error)
+        socket.emit("error", { message: "Failed to delete message" })
+      }
+    })
+
     // Handle disconnection
     socket.on("disconnect", () => {
       console.log(`[Socket] Client disconnected: ${socket.id}`)

@@ -22,6 +22,7 @@ export default function LiveStreamPage() {
   const [streamInfo, setStreamInfo] = useState<{
     isActive: boolean
     bookingId?: string
+    fallbackUrl?: string
   } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -45,6 +46,7 @@ export default function LiveStreamPage() {
         setStreamInfo({
           isActive: streamData.isActive,
           bookingId: streamData.bookingId,
+          fallbackUrl: streamData.fallbackUrl,
         })
 
         if (!streamData.isActive) {
@@ -69,10 +71,11 @@ export default function LiveStreamPage() {
         const streamData = await getTourStreamInfo(tourId)
         setStreamInfo((prev) => {
           // Only update if status changed to avoid unnecessary re-renders
-          if (prev?.isActive !== streamData.isActive || prev?.bookingId !== streamData.bookingId) {
+          if (prev?.isActive !== streamData.isActive || prev?.bookingId !== streamData.bookingId || prev?.fallbackUrl !== streamData.fallbackUrl) {
             return {
               isActive: streamData.isActive,
               bookingId: streamData.bookingId,
+              fallbackUrl: streamData.fallbackUrl,
             }
           }
           return prev
@@ -173,6 +176,7 @@ export default function LiveStreamPage() {
                       thumbnail={tour.images && tour.images.length > 0 ? tour.images[0] : undefined}
                       bookingId={streamInfo.bookingId}
                       userId={user?.uid}
+                      fallbackUrl={streamInfo.fallbackUrl}
                     />
                   </div>
                   
@@ -202,7 +206,7 @@ export default function LiveStreamPage() {
                 {/* Chat Panel - Sidebar on desktop, full width on mobile */}
                 <div className="lg:col-span-1">
                   <div className="sticky top-24 h-[calc(100vh-8rem)]">
-                    <ChatPanel bookingId={streamInfo.bookingId} className="h-full" />
+                    <ChatPanel bookingId={streamInfo.bookingId} isGuide={false} className="h-full" />
                   </div>
                 </div>
               </div>

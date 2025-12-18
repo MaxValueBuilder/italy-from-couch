@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react"
 import { io, Socket } from "socket.io-client"
-import { ChatMessage, TypingUser } from "@/types/chat"
+import { ChatMessage, TypingUser, EmojiReaction } from "@/types/chat"
 import { useAuth } from "@/lib/auth/context"
 
 interface UseSocketReturn {
@@ -10,7 +10,10 @@ interface UseSocketReturn {
   isConnected: boolean
   messages: ChatMessage[]
   typingUsers: TypingUser[]
+  lastEmoji: EmojiReaction | null
   sendMessage: (message: string) => void
+  sendEmoji: (emoji: string) => void
+  deleteMessage: (messageId: string) => void
   startTyping: () => void
   stopTyping: () => void
   joinRoom: (bookingId: string) => void
@@ -23,6 +26,7 @@ export function useSocket(): UseSocketReturn {
   const [isConnected, setIsConnected] = useState(false)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([])
+  const [lastEmoji, setLastEmoji] = useState<EmojiReaction | null>(null)
   const currentRoomRef = useRef<string | null>(null)
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -74,6 +78,16 @@ export function useSocket(): UseSocketReturn {
       setTypingUsers((prev) => prev.filter((u) => u.userId !== userId))
     })
 
+    // Listen for emojis
+    newSocket.on("new-emoji", (reaction: EmojiReaction) => {
+      setLastEmoji(reaction)
+    })
+
+    // Listen for deleted messages
+    newSocket.on("message-deleted", (messageId: string) => {
+      setMessages((prev) => prev.filter((m) => m._id !== messageId))
+    })
+
     // Listen for message history
     newSocket.on("message-history", (history: ChatMessage[]) => {
       setMessages(history)
@@ -115,6 +129,7 @@ export function useSocket(): UseSocketReturn {
     currentRoomRef.current = null
     setMessages([])
     setTypingUsers([])
+    setLastEmoji(null)
   }, [socket])
 
   const sendMessage = useCallback(
@@ -132,6 +147,33 @@ export function useSocket(): UseSocketReturn {
       stopTyping()
     },
     [socket, user, userInfo]
+  )
+
+  const sendEmoji = useCallback(
+    (emoji: string) => {
+      if (!socket || !user || !userInfo || !currentRoomRef.current) return
+
+      socket.emit("send-emoji", {
+        bookingId: currentRoomRef.current,
+        userId: user.uid,
+        userName: userInfo.name || user.email || "Anonymous",
+        emoji,
+      })
+    },
+    [socket, user, userInfo]
+  )
+
+  const deleteMessage = useCallback(
+    (messageId: string) => {
+      if (!socket || !user || !currentRoomRef.current) return
+
+      socket.emit("delete-message", {
+        bookingId: currentRoomRef.current,
+        messageId,
+        userId: user.uid,
+      })
+    },
+    [socket, user]
   )
 
   const startTyping = useCallback(() => {
@@ -173,7 +215,10 @@ export function useSocket(): UseSocketReturn {
     isConnected,
     messages,
     typingUsers,
+    lastEmoji,
     sendMessage,
+    sendEmoji,
+    deleteMessage,
     startTyping,
     stopTyping,
     joinRoom,

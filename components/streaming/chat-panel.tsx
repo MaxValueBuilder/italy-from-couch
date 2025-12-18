@@ -6,20 +6,32 @@ import { ChatMessage } from "@/types/chat"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Send, Loader2 } from "lucide-react"
+import { Send, Loader2, Trash2 } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/lib/auth/context"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
-interface ChatPanelProps {
+ interface ChatPanelProps {
   bookingId: string
   className?: string
+  isGuide?: boolean
 }
 
-export function ChatPanel({ bookingId, className }: ChatPanelProps) {
+export function ChatPanel({ bookingId, className, isGuide }: ChatPanelProps) {
   const { user } = useAuth()
-  const { messages, typingUsers, sendMessage, startTyping, stopTyping, joinRoom, leaveRoom, isConnected } = useSocket()
+  const {
+    messages,
+    typingUsers,
+    sendMessage,
+    sendEmoji,
+    deleteMessage,
+    startTyping,
+    stopTyping,
+    joinRoom,
+    leaveRoom,
+    isConnected,
+  } = useSocket()
   const [inputValue, setInputValue] = useState("")
   const [isSending, setIsSending] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -105,6 +117,8 @@ export function ChatPanel({ bookingId, className }: ChatPanelProps) {
       .slice(0, 2)
   }
 
+  const emojis = ["👍", "❤️", "😊", "🎉", "👏"]
+
   return (
     <div className={cn("flex flex-col h-full bg-card border border-border rounded-lg", className)}>
       {/* Header */}
@@ -148,13 +162,27 @@ export function ChatPanel({ bookingId, className }: ChatPanelProps) {
                     </div>
                     <div
                       className={cn(
-                        "rounded-lg px-3 py-2 text-sm max-w-[80%] break-words",
+                        "rounded-lg px-3 py-2 text-sm max-w-[80%] break-words relative group/msg",
                         isOwnMessage
                           ? "bg-orange-600 text-white"
                           : "bg-muted text-foreground"
                       )}
                     >
                       {message.message}
+                      
+                      {/* Delete Button (Visible to author or guide) */}
+                      {(isOwnMessage || isGuide) && (
+                        <button
+                          onClick={() => message._id && deleteMessage(message._id)}
+                          className={cn(
+                            "absolute -top-2 opacity-0 group-hover/msg:opacity-100 transition-opacity bg-background border border-border rounded-full p-1 shadow-sm hover:text-destructive",
+                            isOwnMessage ? "-left-2" : "-right-2"
+                          )}
+                          title="Delete message"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -188,7 +216,22 @@ export function ChatPanel({ bookingId, className }: ChatPanelProps) {
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="px-4 py-3 border-t border-border">
+      <div className="px-4 py-3 border-t border-border space-y-3">
+        {/* Emoji Bar */}
+        <div className="flex gap-2 justify-center sm:justify-start">
+          {emojis.map((emoji) => (
+            <button
+              key={emoji}
+              onClick={() => sendEmoji(emoji)}
+              disabled={!isConnected}
+              className="text-xl hover:scale-125 transition-transform p-1 rounded hover:bg-muted"
+              title={`Send ${emoji} reaction`}
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
+
         <div className="flex gap-2">
           <Input
             ref={inputRef}

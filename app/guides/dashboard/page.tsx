@@ -10,6 +10,7 @@ import { fetchTourById } from "@/lib/api/tours"
 import { startStream, endStream, getStreamInfo } from "@/lib/api/streams"
 import { Booking } from "@/lib/data/bookings"
 import { Tour } from "@/lib/data/tours"
+import { ChatPanel } from "@/components/streaming/chat-panel"
 import dynamic from "next/dynamic"
 
 // Dynamically import GuideBroadcast to prevent SSR (Agora SDK requires browser APIs)
@@ -184,12 +185,23 @@ export default function GuideDashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <GuideBroadcast
-                  appId={activeStream.appId}
-                  channelName={activeStream.channelName}
-                  token={activeStream.token}
-                  onStreamEnd={handleEndStream}
-                />
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-2">
+                    <GuideBroadcast
+                      appId={activeStream.appId}
+                      channelName={activeStream.channelName}
+                      token={activeStream.token}
+                      onStreamEnd={handleEndStream}
+                    />
+                  </div>
+                  <div className="lg:col-span-1 h-[600px]">
+                    <ChatPanel
+                      bookingId={activeStream.bookingId}
+                      isGuide={true}
+                      className="h-full"
+                    />
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
