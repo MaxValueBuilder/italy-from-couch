@@ -6,6 +6,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/lib/theme-provider"
 import { I18nProvider } from "@/lib/i18n/context"
 import { AuthProvider } from "@/lib/auth/context"
+import { SocketProvider } from "@/lib/socket/context"
 
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
@@ -41,8 +42,10 @@ export default function RootLayout({
         <ThemeProvider>
           <I18nProvider>
             <AuthProvider>
-            {children}
-            <Analytics />
+              <SocketProvider>
+                {children}
+                <Analytics />
+              </SocketProvider>
             </AuthProvider>
           </I18nProvider>
         </ThemeProvider>

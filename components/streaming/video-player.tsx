@@ -302,40 +302,47 @@ export function VideoPlayer({
       )
     }
 
-    // Level 3 Fallback Content
-    if (showFallback && (fallbackUrl || agoraConfig.fallbackUrl)) {
-      return (
-        <div className="w-full aspect-video bg-black rounded-lg overflow-hidden relative">
-          <video
-            src={fallbackUrl || agoraConfig.fallbackUrl}
-            autoPlay
-            loop
-            muted
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute top-4 left-4 z-10">
-            <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-semibold text-white flex items-center gap-2">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
-              <span>STABILIZING SIGNAL...</span>
+    // Agora streaming
+    const renderAgoraContent = () => {
+      // Level 3 Fallback Content
+      if (showFallback && (fallbackUrl || agoraConfig.fallbackUrl)) {
+        return (
+          <div className="w-full h-full overflow-hidden relative">
+            <video
+              src={fallbackUrl || agoraConfig.fallbackUrl}
+              autoPlay
+              loop
+              muted
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute top-4 left-4 z-10">
+              <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-semibold text-white flex items-center gap-2">
+                <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
+                <span>STABILIZING SIGNAL...</span>
+              </div>
+            </div>
+            <div className="absolute bottom-4 right-4 z-10">
+              <p className="text-[10px] text-white/50 bg-black/40 px-2 py-1 rounded">
+                You are watching a recorded clip while we restore the live feed.
+              </p>
             </div>
           </div>
-          <div className="absolute bottom-4 right-4 z-10">
-            <p className="text-[10px] text-white/50 bg-black/40 px-2 py-1 rounded">
-              You are watching a recorded clip while we restore the live feed.
-            </p>
-          </div>
-        </div>
-      )
-    }
+        )
+      }
 
-    return (
-      <div className="relative w-full aspect-video">
+      return (
         <AgoraViewer
           appId={agoraConfig.appId}
           channelName={agoraConfig.channelName}
           token={agoraConfig.token}
           onStreamStalled={handleStreamStall}
         />
+      )
+    }
+
+    return (
+      <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
+        {renderAgoraContent()}
         <EmojiReactions />
       </div>
     )
