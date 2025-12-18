@@ -6,6 +6,7 @@ import { Footer } from "@/components/footer"
 import { fetchTourById } from "@/lib/api/tours"
 import { getTourStreamInfo } from "@/lib/api/streams"
 import { VideoPlayer } from "@/components/streaming/video-player"
+import { ChatPanel } from "@/components/streaming/chat-panel"
 import { LiveBadge } from "@/components/streaming/live-badge"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2, AlertCircle } from "lucide-react"
@@ -160,38 +161,48 @@ export default function LiveStreamPage() {
         <section className="py-8 px-4">
           <div className="max-w-7xl mx-auto">
             {streamInfo?.isActive && streamInfo.bookingId ? (
-              <div className="space-y-6">
-                {/* Video Player */}
-                <div className="bg-black rounded-lg overflow-hidden shadow-2xl">
-                  <VideoPlayer
-                    streamType="agora"
-                    isLive={true}
-                    title={tour.title}
-                    thumbnail={tour.images && tour.images.length > 0 ? tour.images[0] : undefined}
-                    bookingId={streamInfo.bookingId}
-                    userId={user?.uid}
-                  />
-                </div>
-                
-                {/* Stream Info */}
-                <div className="bg-card border border-border rounded-lg p-6">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse" />
-                      <div>
-                        <span className="font-semibold text-foreground block">Live Now</span>
-                        <span className="text-sm text-muted-foreground">
-                          {tour.title} • {tour.city}
-                        </span>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Main Content - Video Player */}
+                <div className="lg:col-span-2 space-y-6">
+                  {/* Video Player */}
+                  <div className="bg-black rounded-lg overflow-hidden shadow-2xl">
+                    <VideoPlayer
+                      streamType="agora"
+                      isLive={true}
+                      title={tour.title}
+                      thumbnail={tour.images && tour.images.length > 0 ? tour.images[0] : undefined}
+                      bookingId={streamInfo.bookingId}
+                      userId={user?.uid}
+                    />
+                  </div>
+                  
+                  {/* Stream Info */}
+                  <div className="bg-card border border-border rounded-lg p-6">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse" />
+                        <div>
+                          <span className="font-semibold text-foreground block">Live Now</span>
+                          <span className="text-sm text-muted-foreground">
+                            {tour.title} • {tour.city}
+                          </span>
+                        </div>
                       </div>
+                      <Button
+                        variant="outline"
+                        onClick={() => router.push(`/tours/${tourId}`)}
+                        className="w-full sm:w-auto"
+                      >
+                        View Tour Details
+                      </Button>
                     </div>
-                    <Button
-                      variant="outline"
-                      onClick={() => router.push(`/tours/${tourId}`)}
-                      className="w-full sm:w-auto"
-                    >
-                      View Tour Details
-                    </Button>
+                  </div>
+                </div>
+
+                {/* Chat Panel - Sidebar on desktop, full width on mobile */}
+                <div className="lg:col-span-1">
+                  <div className="sticky top-24 h-[calc(100vh-8rem)]">
+                    <ChatPanel bookingId={streamInfo.bookingId} className="h-full" />
                   </div>
                 </div>
               </div>

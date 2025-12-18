@@ -1,0 +1,23 @@
+export interface ChatMessage {
+  _id?: string
+  bookingId: string
+  userId: string
+  userName: string
+  message: string
+  type: "message" | "system"
+  timestamp: Date
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface TypingUser {
+  userId: string
+  userName: string
+}
+
+export interface ChatRoomState {
+  bookingId: string
+  users: TypingUser[]
+  messages: ChatMessage[]
+}
+

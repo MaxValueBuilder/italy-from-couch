@@ -1,3 +1,9 @@
+// Load environment variables from .env.local
+// Use require() to ensure it runs before ES6 imports
+const dotenv = require("dotenv")
+const path = require("path")
+dotenv.config({ path: path.resolve(process.cwd(), ".env.local") })
+
 import { MongoClient, MongoClientOptions } from "mongodb"
 
 if (!process.env.MONGODB_URI) {
