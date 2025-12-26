@@ -1,10 +1,25 @@
+export interface TimeSlot {
+  startTime: string // "HH:mm" format (e.g., "10:00")
+  endTime: string // "HH:mm" format (e.g., "12:00")
+}
+
+export interface WeeklyRecurrencePattern {
+  daysOfWeek: number[] // 0=Sunday, 1=Monday, ..., 6=Saturday
+  timeSlots: TimeSlot[]
+  timezone: string
+}
+
+export interface OneTimeSlot {
+  date: string // ISO date "YYYY-MM-DD"
+  timeSlots: TimeSlot[]
+}
+
 export interface Tour {
   _id: string
   title: string
   city: "Rome" | "Florence" | "Venice"
   duration: number
   guide: string
-  schedule: string
   highlights: string[]
   images: string[] // Array of image URLs for gallery
   // Streaming fields
@@ -14,15 +29,20 @@ export interface Tour {
   description?: string // Tour description
   // Additional fields from Civitatis
   itinerary?: string // Detailed itinerary description
-  meetingPoint?: string // Meeting point location
-  bookingDates?: string[] // Available dates for booking (ISO date strings)
+  startingPoint?: string // Starting point location
+  bookingDates?: string[] // Available dates for booking (ISO date strings) - DEPRECATED: use recurrencePattern/oneTimeSlots
   details?: {
     duration?: string // Duration in text format (e.g., "2-2.5 hours")
     language?: string // Tour language
     groupSize?: string // Maximum group size
     included?: string[] // What's included in the tour
-    notIncluded?: string[] // What's not included
   }
+  // Tour slots configuration
+  recurrenceType?: "weekly" | "none" // How the tour repeats
+  recurrencePattern?: WeeklyRecurrencePattern // For weekly recurring tours
+  oneTimeSlots?: OneTimeSlot[] // For non-recurring tours with specific dates
+  maxParticipants?: number // Default max participants per slot
+  timezone?: string // Tour timezone (e.g., "Europe/Rome")
   createdAt?: Date
   updatedAt?: Date
 }

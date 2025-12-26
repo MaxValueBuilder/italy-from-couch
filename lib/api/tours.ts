@@ -42,3 +42,56 @@ export async function fetchTourById(id: string): Promise<Tour | null> {
   }
 }
 
+// Create a new tour
+export async function createTour(tourData: {
+  title: string
+  city: "Rome" | "Florence" | "Venice"
+  duration: number
+  guide: string
+  highlights?: string[]
+  images?: string[]
+  description?: string
+  itinerary?: string
+  startingPoint?: string
+  bookingDates?: string[]
+  details?: {
+    duration?: string
+    language?: string
+    groupSize?: string
+    included?: string[]
+  }
+  // New slot configuration fields
+  recurrenceType?: "weekly" | "none"
+  recurrencePattern?: {
+    daysOfWeek: number[]
+    timeSlots: Array<{ startTime: string; endTime: string }>
+    timezone?: string
+  }
+  oneTimeSlots?: Array<{
+    date: string
+    timeSlots: Array<{ startTime: string; endTime: string }>
+  }>
+  maxParticipants?: number
+  timezone?: string
+}): Promise<{ success: boolean; _id?: string; error?: string }> {
+  try {
+    const response = await fetch("/api/tours", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(tourData),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || "Failed to create tour")
+    }
+
+    return await response.json()
+  } catch (error: any) {
+    console.error("Error creating tour:", error)
+    return { success: false, error: error.message }
+  }
+}
+

@@ -96,10 +96,6 @@ export default function ToursPage() {
                             {t("tours.guide")}: {tour.guide}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <MapPin size={16} />
-                          <span>{tour.schedule}</span>
-                        </div>
                       </div>
 
                       {/* Highlights */}

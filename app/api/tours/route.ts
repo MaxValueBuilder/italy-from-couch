@@ -40,7 +40,6 @@ export async function POST(request: NextRequest) {
       city,
       duration,
       guide,
-      schedule,
       highlights,
       images,
       streamUrl,
@@ -51,6 +50,12 @@ export async function POST(request: NextRequest) {
       meetingPoint,
       bookingDates,
       details,
+      // New slot configuration fields
+      recurrenceType,
+      recurrencePattern,
+      oneTimeSlots,
+      maxParticipants,
+      timezone,
     } = body
 
     if (!title || !city) {
@@ -61,12 +66,15 @@ export async function POST(request: NextRequest) {
     const db = client.db("italy-from-couch")
     const tours = db.collection("tours")
 
-    const tourData = {
+    // Get default timezone for city if not provided
+    const { getCityTimezone } = await import("@/lib/utils/timezone")
+    const tourTimezone = timezone || getCityTimezone(city)
+
+    const tourData: any = {
       title,
       city,
       duration: duration || 0,
       guide: guide || "",
-      schedule: schedule || "",
       highlights: highlights || [],
       images: images || [],
       streamUrl: streamUrl || null,
@@ -77,6 +85,12 @@ export async function POST(request: NextRequest) {
       meetingPoint: meetingPoint || null,
       bookingDates: bookingDates || [],
       details: details || null,
+      // New slot configuration
+      recurrenceType: recurrenceType || "none",
+      recurrencePattern: recurrencePattern || null,
+      oneTimeSlots: oneTimeSlots || null,
+      maxParticipants: maxParticipants || 50,
+      timezone: tourTimezone,
       createdAt: new Date(),
       updatedAt: new Date(),
     }

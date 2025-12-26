@@ -63,26 +63,24 @@ async function seedTourSlots() {
           updatedAt: new Date(),
         })
 
-        // Create afternoon slot (2:00 PM) if tour has afternoon schedule
-        if (tour.schedule && tour.schedule.includes("PM")) {
-          const afternoonStart = setMinutes(setHours(date, 14), 0)
-          const afternoonEnd = new Date(
-            afternoonStart.getTime() + (tour.duration || 90) * 60 * 1000
-          )
+        // Create afternoon slot (2:00 PM) for all tours
+        const afternoonStart = setMinutes(setHours(date, 14), 0)
+        const afternoonEnd = new Date(
+          afternoonStart.getTime() + (tour.duration || 90) * 60 * 1000
+        )
 
-          slotsToCreate.push({
-            tourId: tour._id.toString(),
-            guideId: tour.guide || "",
-            startTime: afternoonStart,
-            endTime: afternoonEnd,
-            timezone,
-            maxParticipants: 50,
-            bookedCount: 0,
-            isAvailable: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          })
-        }
+        slotsToCreate.push({
+          tourId: tour._id.toString(),
+          guideId: tour.guide || "",
+          startTime: afternoonStart,
+          endTime: afternoonEnd,
+          timezone,
+          maxParticipants: 50,
+          bookedCount: 0,
+          isAvailable: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
       }
 
       // Insert slots

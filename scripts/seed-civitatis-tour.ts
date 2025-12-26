@@ -17,7 +17,6 @@ const civitatisTour = {
   city: "Rome",
   duration: 120, // 2 hours (can be 2-2.5 hours)
   guide: "Anna", // Based on reviews mentioning Anna
-  schedule: "Evening tour - Check availability for specific times",
   highlights: [
     "Piazza del Popolo",
     "Chiesa di Santa Maria del Popolo",
@@ -55,7 +54,6 @@ Dopo un itinerario che durerà tra le due ore e le due ore e mezza, concluderemo
     language: "Italian, English",
     groupSize: "Maximum group size varies",
     included: ["Professional guide", "Free tour (tips-based)"],
-    notIncluded: ["Food and drinks", "Transportation", "Entrance fees to monuments"],
   },
   createdAt: new Date(),
   updatedAt: new Date(),

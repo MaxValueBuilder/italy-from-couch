@@ -19,7 +19,7 @@ import { fetchBookingById } from "@/lib/api/bookings"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatWithTimezone, getUserTimezone } from "@/lib/utils/timezone"
-import { Calendar, Clock, MapPin, Video, VideoOff, Loader2 } from "lucide-react"
+import { Calendar, Clock, MapPin, Video, VideoOff, Loader2, Plus } from "lucide-react"
 import { format } from "date-fns"
 import dynamic from "next/dynamic"
 
@@ -192,11 +192,20 @@ export default function GuideDashboardPage() {
       <Header />
       <main className="min-h-screen bg-background py-12 px-4">
         <div className="max-w-6xl mx-auto space-y-8">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">Guide Dashboard</h1>
-            <p className="text-muted-foreground">
-              Manage your tour bookings and start live streams
-            </p>
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold mb-2">Guide Dashboard</h1>
+              <p className="text-muted-foreground">
+                Manage your tour bookings and start live streams
+              </p>
+            </div>
+            <Button
+              onClick={() => router.push("/guides/tours/new")}
+              className="bg-orange-600 hover:bg-orange-700 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Tour
+            </Button>
           </div>
 
           {/* Active Stream */}

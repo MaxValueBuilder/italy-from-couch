@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb/connection"
 import { TourSlot } from "@/lib/data/bookings"
+import { Tour } from "@/lib/data/tours"
 import { getCityTimezone, addDuration, isPastDate } from "@/lib/utils/timezone"
+import { generateTourSlots } from "@/lib/utils/tour-slots"
 
 // GET - Get available time slots for a tour
 export async function GET(
@@ -18,6 +20,7 @@ export async function GET(
     const db = client.db("italy-from-couch")
     const tours = db.collection("tours")
     const slots = db.collection("tourSlots")
+    const bookings = db.collection("bookings")
 
     // Get tour details
     const { ObjectId } = await import("mongodb")
@@ -31,36 +34,100 @@ export async function GET(
       return NextResponse.json({ error: "Tour not found" }, { status: 404 })
     }
 
-    const timezone = getCityTimezone(tour.city)
+    const timezone = tour.timezone || getCityTimezone(tour.city)
     const now = new Date()
     const queryStartDate = startDate ? new Date(startDate) : now
     const queryEndDate = endDate ? new Date(endDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
 
-    // Query available slots
-    const query: any = {
-      tourId: id,
-      isAvailable: true,
-      startTime: {
-        $gte: queryStartDate,
-        $lte: queryEndDate,
-      },
+    let availableSlots: any[] = []
+
+    // Check if tour uses pattern-based slots (new approach)
+    if (tour.recurrenceType && (tour.recurrencePattern || tour.oneTimeSlots)) {
+      // Generate slots from pattern
+      const tourData: Tour = {
+        _id: tour._id.toString(),
+        title: tour.title || "",
+        city: tour.city as "Rome" | "Florence" | "Venice",
+        duration: tour.duration || 0,
+        guide: tour.guide || "",
+        highlights: tour.highlights || [],
+        images: tour.images || [],
+        recurrenceType: tour.recurrenceType,
+        recurrencePattern: tour.recurrencePattern,
+        oneTimeSlots: tour.oneTimeSlots,
+        maxParticipants: tour.maxParticipants,
+        timezone: tour.timezone,
+      }
+
+      const generatedSlots = generateTourSlots(tourData, queryStartDate, queryEndDate)
+      
+      // Set guideId from tour if available (tour.guide is the guide name, we need guideId)
+      // For now, we'll leave it empty as it will be resolved when booking is created
+      // The booking system should handle guideId lookup
+
+      // Get existing bookings to calculate bookedCount
+      const bookingQuery = {
+        tourId: id,
+        status: { $in: ["pending", "confirmed", "live"] },
+        scheduledAt: {
+          $gte: queryStartDate,
+          $lte: queryEndDate,
+        },
+      }
+
+      const existingBookings = await bookings.find(bookingQuery).toArray()
+
+      // Match generated slots with bookings to get bookedCount
+      const slotsWithBookings = generatedSlots.map((slot) => {
+        const matchingBookings = existingBookings.filter((booking) => {
+          const bookingTime = new Date(booking.scheduledAt)
+          const slotTime = new Date(slot.startTime)
+          // Check if booking is for the same date and time (within 1 hour tolerance)
+          return (
+            bookingTime.toDateString() === slotTime.toDateString() &&
+            Math.abs(bookingTime.getTime() - slotTime.getTime()) < 60 * 60 * 1000
+          )
+        })
+
+        return {
+          ...slot,
+          bookedCount: matchingBookings.length,
+          isAvailable: matchingBookings.length < slot.maxParticipants,
+        }
+      })
+
+      // Filter out past slots and fully booked slots
+      availableSlots = slotsWithBookings.filter((slot) => {
+        const slotDate = new Date(slot.startTime)
+        return !isPastDate(slotDate, timezone) && slot.isAvailable
+      })
+    } else {
+      // Legacy approach: query existing slots from database
+      const query: any = {
+        tourId: id,
+        isAvailable: true,
+        startTime: {
+          $gte: queryStartDate,
+          $lte: queryEndDate,
+        },
+      }
+
+      const slotsList = await slots.find(query).sort({ startTime: 1 }).toArray()
+
+      // Filter out past slots
+      availableSlots = slotsList.filter((slot) => {
+        const slotDate = new Date(slot.startTime)
+        return !isPastDate(slotDate, timezone) && slot.bookedCount < slot.maxParticipants
+      })
     }
-
-    const slotsList = await slots.find(query).sort({ startTime: 1 }).toArray()
-
-    // Filter out past slots
-    const availableSlots = slotsList.filter((slot) => {
-      const slotDate = new Date(slot.startTime)
-      return !isPastDate(slotDate, timezone) && slot.bookedCount < slot.maxParticipants
-    })
 
     const formattedSlots = availableSlots.map((slot) => ({
       ...slot,
-      _id: slot._id.toString(),
+      _id: slot._id || `generated-${slot.startTime}-${slot.tourId}`,
       startTime: slot.startTime ? new Date(slot.startTime).toISOString() : undefined,
       endTime: slot.endTime ? new Date(slot.endTime).toISOString() : undefined,
-      createdAt: slot.createdAt ? new Date(slot.createdAt).toISOString() : undefined,
-      updatedAt: slot.updatedAt ? new Date(slot.updatedAt).toISOString() : undefined,
+      createdAt: slot.createdAt ? new Date(slot.createdAt).toISOString() : new Date().toISOString(),
+      updatedAt: slot.updatedAt ? new Date(slot.updatedAt).toISOString() : new Date().toISOString(),
     }))
 
     return NextResponse.json({ success: true, slots: formattedSlots })

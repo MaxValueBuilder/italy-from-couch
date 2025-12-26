@@ -137,7 +137,6 @@ export default function CityPage() {
                       <p className="text-sm text-muted-foreground">
                         {tour.duration} min • Guide: {tour.guide}
                       </p>
-                      <p className="text-sm text-orange-600 font-semibold">{tour.schedule}</p>
                       <div className="pt-3 border-t border-border">
                         <p className="text-xs text-muted-foreground font-semibold mb-2">Highlights:</p>
                         <div className="flex flex-wrap gap-2">

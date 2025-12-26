@@ -103,3 +103,27 @@ export async function fetchGuideBookings(guideId: string) {
     return []
   }
 }
+
+/**
+ * Fetch a guide by ID
+ */
+export async function fetchGuideById(guideId: string): Promise<Guide | null> {
+  try {
+    const response = await fetch(`/api/guides/${guideId}`, {
+      cache: "no-store",
+    })
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return null
+      }
+      throw new Error("Failed to fetch guide")
+    }
+
+    const data = await response.json()
+    return data.guide || null
+  } catch (error) {
+    console.error("Error fetching guide:", error)
+    return null
+  }
+}

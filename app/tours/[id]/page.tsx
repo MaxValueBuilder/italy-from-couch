@@ -215,16 +215,6 @@ export default function TourDetailPage() {
                           <p className="text-lg font-bold text-foreground mt-1">{tour.guide}</p>
                         </div>
                       </div>
-
-                      <div className="flex items-start gap-4">
-                        <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                          <MapPin size={20} className="text-orange-600 dark:text-orange-400" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Schedule</p>
-                          <p className="text-lg font-bold text-foreground mt-1">{tour.schedule}</p>
-                        </div>
-                      </div>
                     </div>
                   </div>
 
@@ -279,28 +269,15 @@ export default function TourDetailPage() {
                             </ul>
                           </div>
                         )}
-                        {tour.details.notIncluded && tour.details.notIncluded.length > 0 && (
-                          <div>
-                            <p className="text-sm font-semibold text-foreground mb-2">Not Included</p>
-                            <ul className="space-y-1.5">
-                              {tour.details.notIncluded.map((item, idx) => (
-                                <li key={idx} className="text-muted-foreground flex items-start gap-2">
-                                  <span className="text-red-500 dark:text-red-400 mt-1.5">•</span>
-                                  <span>{item}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
                       </div>
                     </div>
                   )}
 
-                  {/* Meeting Point */}
-                  {tour.meetingPoint && (
+                  {/* Starting Tour Point */}
+                  {tour.startingPoint && (
                     <div className="p-6 bg-card border border-border rounded-lg">
-                      <h2 className="text-2xl font-bold text-foreground mb-4">Meeting Point</h2>
-                      <p className="text-muted-foreground leading-relaxed">{tour.meetingPoint}</p>
+                      <h2 className="text-2xl font-bold text-foreground mb-4">Starting Tour Point</h2>
+                      <p className="text-muted-foreground leading-relaxed">{tour.startingPoint}</p>
                     </div>
                   )}
 
