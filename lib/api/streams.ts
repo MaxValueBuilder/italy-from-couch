@@ -154,8 +154,11 @@ export interface TourStreamInfoResponse {
   guideId?: string
   tourId?: string
   startedAt?: string
+  scheduledAt?: string
+  duration?: number
   participantCount?: number
   appId?: string
+  fallbackUrl?: string
   message?: string
 }
 

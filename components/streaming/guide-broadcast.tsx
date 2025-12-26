@@ -5,6 +5,7 @@ import AgoraRTC, { type IAgoraRTCClient, type ICameraVideoTrack, type IMicrophon
 import { Button } from "@/components/ui/button"
 import { Loader2, Video, VideoOff, Mic, MicOff, PhoneOff } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { EmojiReactions } from "./emoji-reactions"
 
 interface GuideBroadcastProps {
   appId: string
@@ -198,6 +199,10 @@ export function GuideBroadcast({
           ref={videoContainerRef}
           className="w-full h-full"
         />
+        
+        {/* Emoji Overlay for Guide */}
+        <EmojiReactions />
+
         {!isStreaming && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
             <div className="text-center text-white/70 space-y-2">

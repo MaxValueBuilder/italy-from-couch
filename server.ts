@@ -54,6 +54,8 @@ app.prepare().then(() => {
   // Store active rooms and typing users
   const activeRooms = new Map<string, Set<string>>() // bookingId -> Set of userIds
   const typingUsers = new Map<string, Map<string, NodeJS.Timeout>>() // bookingId -> Map<userId, timeout>
+  // Store participant details for each room
+  const participants = new Map<string, Map<string, { userId: string; userName: string; joinedAt: Date; isGuide?: boolean }>>() // bookingId -> Map<userId, participant>
 
   // Socket.io connection handling
   io.on("connection", (socket) => {
@@ -68,6 +70,7 @@ app.prepare().then(() => {
         const client = await clientPromise
         const db = client.db("italy-from-couch")
         const bookings = db.collection("bookings")
+        const users = db.collection("users")
         const { ObjectId } = await import("mongodb")
 
         let booking
@@ -83,15 +86,40 @@ app.prepare().then(() => {
           return
         }
 
+        // Check if user is the guide for this booking
+        const user = await users.findOne({ uid: userId })
+        const isGuide = user?.guideId === booking.guideId
+
         // Join the room
         socket.join(bookingId)
-        console.log(`[Socket] User ${userId} joined room ${bookingId}`)
+        console.log(`[Socket] User ${userId} joined room ${bookingId} (${isGuide ? "Guide" : "Viewer"})`)
 
         // Track active users in room
         if (!activeRooms.has(bookingId)) {
           activeRooms.set(bookingId, new Set())
         }
         activeRooms.get(bookingId)!.add(userId)
+
+        // Track participant details
+        if (!participants.has(bookingId)) {
+          participants.set(bookingId, new Map())
+        }
+        const participantMap = participants.get(bookingId)!
+        if (!participantMap.has(userId)) {
+          participantMap.set(userId, {
+            userId,
+            userName: data.userName,
+            joinedAt: new Date(),
+            isGuide: isGuide || false
+          })
+        }
+
+        // Broadcast updated participant list to all in room
+        const participantList = Array.from(participantMap.values())
+        io.to(bookingId).emit("participants-updated", {
+          count: participantList.length,
+          participants: participantList
+        })
 
         // Load and send message history
         const chatMessages = db.collection("chatMessages")
@@ -121,9 +149,27 @@ app.prepare().then(() => {
     })
 
     // Leave a room
-    socket.on("leave-room", (bookingId: string) => {
+    socket.on("leave-room", (data: string | { bookingId: string; userId: string }) => {
+      const bookingId = typeof data === "string" ? data : data.bookingId
+      const userId = typeof data === "string" ? undefined : data.userId
+
       socket.leave(bookingId)
       console.log(`[Socket] Client left room ${bookingId}`)
+
+      // Remove from active rooms
+      if (activeRooms.has(bookingId) && userId) {
+        activeRooms.get(bookingId)!.delete(userId)
+      }
+
+      // Remove from participants
+      if (participants.has(bookingId) && userId) {
+        participants.get(bookingId)!.delete(userId)
+        const participantList = Array.from(participants.get(bookingId)!.values())
+        io.to(bookingId).emit("participants-updated", {
+          count: participantList.length,
+          participants: participantList
+        })
+      }
 
       // Clean up typing indicator
       if (typingUsers.has(bookingId)) {
@@ -257,6 +303,10 @@ app.prepare().then(() => {
     // Handle disconnection
     socket.on("disconnect", () => {
       console.log(`[Socket] Client disconnected: ${socket.id}`)
+      
+      // Clean up participant tracking on disconnect
+      // Note: We can't easily get userId from socket.id, so we rely on explicit leave-room calls
+      // In production, you might want to store socket.id -> userId mapping
     })
   })
 

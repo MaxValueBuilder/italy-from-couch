@@ -8,10 +8,14 @@ import { getTourStreamInfo } from "@/lib/api/streams"
 import { VideoPlayer } from "@/components/streaming/video-player"
 import { ChatPanel } from "@/components/streaming/chat-panel"
 import { LiveBadge } from "@/components/streaming/live-badge"
+import { TourProgress } from "@/components/streaming/tour-progress"
+import { ParticipantList } from "@/components/streaming/participant-list"
+import { SidebarToggle } from "@/components/streaming/sidebar-toggle"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2, AlertCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useAuth } from "@/lib/auth/context"
+import { useSocket } from "@/lib/socket/client"
 
 export default function LiveStreamPage() {
   const params = useParams()
@@ -23,9 +27,14 @@ export default function LiveStreamPage() {
     isActive: boolean
     bookingId?: string
     fallbackUrl?: string
+    scheduledAt?: string
+    duration?: number
+    startedAt?: string
   } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [sidebarView, setSidebarView] = useState<"participants" | "chat">("participants")
+  const { joinRoom, leaveRoom } = useSocket()
 
   useEffect(() => {
     async function loadData() {
@@ -47,7 +56,15 @@ export default function LiveStreamPage() {
           isActive: streamData.isActive,
           bookingId: streamData.bookingId,
           fallbackUrl: streamData.fallbackUrl,
+          scheduledAt: streamData.scheduledAt,
+          duration: streamData.duration,
+          startedAt: streamData.startedAt,
         })
+        
+        // Join socket room if stream is active
+        if (streamData.isActive && streamData.bookingId) {
+          joinRoom(streamData.bookingId)
+        }
 
         if (!streamData.isActive) {
           setError("No active stream available. The stream may have ended or not started yet.")
@@ -72,11 +89,23 @@ export default function LiveStreamPage() {
         setStreamInfo((prev) => {
           // Only update if status changed to avoid unnecessary re-renders
           if (prev?.isActive !== streamData.isActive || prev?.bookingId !== streamData.bookingId || prev?.fallbackUrl !== streamData.fallbackUrl) {
-            return {
+            const newInfo = {
               isActive: streamData.isActive,
               bookingId: streamData.bookingId,
               fallbackUrl: streamData.fallbackUrl,
+              scheduledAt: streamData.scheduledAt,
+              duration: streamData.duration,
+              startedAt: streamData.startedAt,
             }
+            
+            // Join/leave socket room based on stream status
+            if (streamData.isActive && streamData.bookingId) {
+              joinRoom(streamData.bookingId)
+            } else if (!streamData.isActive) {
+              leaveRoom()
+            }
+            
+            return newInfo
           }
           return prev
         })
@@ -85,8 +114,11 @@ export default function LiveStreamPage() {
       }
     }, 10000)
 
-    return () => clearInterval(interval)
-  }, [tourId])
+    return () => {
+      clearInterval(interval)
+      leaveRoom()
+    }
+  }, [tourId, joinRoom, leaveRoom])
 
   if (loading) {
     return (
@@ -161,7 +193,7 @@ export default function LiveStreamPage() {
         </div>
 
         {/* Video Player Section */}
-        <section className="py-8 px-4">
+        <section className="py-8 px-4 relative">
           <div className="max-w-7xl mx-auto">
             {streamInfo?.isActive && streamInfo.bookingId ? (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -179,6 +211,15 @@ export default function LiveStreamPage() {
                       fallbackUrl={streamInfo.fallbackUrl}
                     />
                   </div>
+                  
+                  {/* Tour Progress & Timer */}
+                  {streamInfo.scheduledAt && streamInfo.duration && (
+                    <TourProgress
+                      bookingId={streamInfo.bookingId}
+                      startTime={new Date(streamInfo.startedAt || streamInfo.scheduledAt)}
+                      duration={streamInfo.duration}
+                    />
+                  )}
                   
                   {/* Stream Info */}
                   <div className="bg-card border border-border rounded-lg p-6">
@@ -203,10 +244,23 @@ export default function LiveStreamPage() {
                   </div>
                 </div>
 
-                {/* Chat Panel - Sidebar on desktop, full width on mobile */}
-                <div className="lg:col-span-1">
-                  <div className="sticky top-24 h-[calc(100vh-8rem)]">
-                    <ChatPanel bookingId={streamInfo.bookingId} isGuide={false} className="h-full" />
+                {/* Sidebar - Toggleable Participants/Chat */}
+                <div className="lg:col-span-1 flex flex-col">
+                  <div className="sticky top-24 h-[calc(100vh-8rem)] flex flex-col">
+                    {/* Toggleable Content - Expands to fill available space */}
+                    <div className="flex-1 min-h-0 overflow-hidden">
+                      {sidebarView === "participants" ? (
+                        <ParticipantList bookingId={streamInfo.bookingId} className="h-full" />
+                      ) : (
+                        <ChatPanel bookingId={streamInfo.bookingId} isGuide={false} className="h-full" />
+                      )}
+                    </div>
+                    {/* Toggle Buttons at Bottom of Sidebar - Fixed at bottom */}
+                    <div className="flex-shrink-0 px-4 py-3 border-t border-border bg-card">
+                      <div className="flex justify-center">
+                        <SidebarToggle onViewChange={setSidebarView} activeView={sidebarView} />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -11,6 +11,16 @@ import { startStream, endStream, getStreamInfo } from "@/lib/api/streams"
 import { Booking } from "@/lib/data/bookings"
 import { Tour } from "@/lib/data/tours"
 import { ChatPanel } from "@/components/streaming/chat-panel"
+import { ParticipantList } from "@/components/streaming/participant-list"
+import { TourProgress } from "@/components/streaming/tour-progress"
+import { SidebarToggle } from "@/components/streaming/sidebar-toggle"
+import { useSocket } from "@/lib/socket/client"
+import { fetchBookingById } from "@/lib/api/bookings"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { formatWithTimezone, getUserTimezone } from "@/lib/utils/timezone"
+import { Calendar, Clock, MapPin, Video, VideoOff, Loader2 } from "lucide-react"
+import { format } from "date-fns"
 import dynamic from "next/dynamic"
 
 // Dynamically import GuideBroadcast to prevent SSR (Agora SDK requires browser APIs)
@@ -22,11 +32,6 @@ const GuideBroadcast = dynamic(() => import("@/components/streaming/guide-broadc
     </div>
   ),
 })
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { formatWithTimezone, getUserTimezone } from "@/lib/utils/timezone"
-import { Calendar, Clock, MapPin, Video, VideoOff, Loader2 } from "lucide-react"
-import { format } from "date-fns"
 
 export default function GuideDashboardPage() {
   const router = useRouter()
@@ -39,7 +44,12 @@ export default function GuideDashboardPage() {
     appId: string
     channelName: string
     token: string
+    scheduledAt?: Date
+    duration?: number
+    startedAt?: Date
   } | null>(null)
+  const [sidebarView, setSidebarView] = useState<"participants" | "chat">("participants")
+  const { joinRoom, leaveRoom } = useSocket()
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -113,12 +123,25 @@ export default function GuideDashboardPage() {
   const handleStartStream = async (bookingId: string) => {
     try {
       const result = await startStream(bookingId, user!.uid)
+      
+      // Fetch booking details for timer
+      const booking = await fetchBookingById(bookingId)
+      
       setActiveStream({
         bookingId,
         appId: result.appId,
         channelName: result.channelName,
         token: result.token,
+        scheduledAt: booking?.scheduledAt ? new Date(booking.scheduledAt) : undefined,
+        duration: booking?.duration,
+        startedAt: new Date(), // Stream just started
       })
+      
+      // Join socket room for chat and participants
+      if (bookingId) {
+        joinRoom(bookingId)
+      }
+      
       // Refresh bookings to update status
       await loadBookings()
     } catch (error: any) {
@@ -132,6 +155,7 @@ export default function GuideDashboardPage() {
 
     try {
       await endStream(activeStream.bookingId, user!.uid)
+      leaveRoom()
       setActiveStream(null)
       // Refresh bookings to update status
       await loadBookings()
@@ -186,20 +210,45 @@ export default function GuideDashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2">
+                  <div className="lg:col-span-2 space-y-6">
                     <GuideBroadcast
                       appId={activeStream.appId}
                       channelName={activeStream.channelName}
                       token={activeStream.token}
                       onStreamEnd={handleEndStream}
                     />
+                    
+                    {/* Tour Progress & Timer */}
+                    {activeStream.scheduledAt && activeStream.duration && activeStream.startedAt && (
+                      <TourProgress
+                        bookingId={activeStream.bookingId}
+                        startTime={activeStream.startedAt}
+                        duration={activeStream.duration}
+                        onTimeExpired={handleEndStream}
+                      />
+                    )}
                   </div>
-                  <div className="lg:col-span-1 h-[600px]">
-                    <ChatPanel
-                      bookingId={activeStream.bookingId}
-                      isGuide={true}
-                      className="h-full"
-                    />
+                  <div className="lg:col-span-1 flex flex-col">
+                    <div className="flex-1 min-h-0 flex flex-col">
+                      {/* Toggleable Content - Expands to fill available space */}
+                      <div className="flex-1 min-h-0 overflow-hidden">
+                        {sidebarView === "participants" ? (
+                          <ParticipantList bookingId={activeStream.bookingId} className="h-full" />
+                        ) : (
+                          <ChatPanel
+                            bookingId={activeStream.bookingId}
+                            isGuide={true}
+                            className="h-full"
+                          />
+                        )}
+                      </div>
+                      {/* Toggle Buttons at Bottom of Sidebar - Fixed at bottom */}
+                      <div className="flex-shrink-0 px-4 py-3 border-t border-border bg-card">
+                        <div className="flex justify-center">
+                          <SidebarToggle onViewChange={setSidebarView} activeView={sidebarView} />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </CardContent>

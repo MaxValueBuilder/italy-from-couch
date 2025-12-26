@@ -29,3 +29,15 @@ export interface ChatRoomState {
   messages: ChatMessage[]
 }
 
+export interface Participant {
+  userId: string
+  userName: string
+  joinedAt: Date
+  isGuide?: boolean
+}
+
+export interface ParticipantsUpdate {
+  count: number
+  participants: Participant[]
+}
+

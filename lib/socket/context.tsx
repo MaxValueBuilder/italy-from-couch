@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from "react"
 import { io, Socket } from "socket.io-client"
-import { ChatMessage, TypingUser, EmojiReaction } from "@/types/chat"
+import { ChatMessage, TypingUser, EmojiReaction, Participant, ParticipantsUpdate } from "@/types/chat"
 import { useAuth } from "@/lib/auth/context"
 
 interface SocketContextType {
@@ -11,6 +11,8 @@ interface SocketContextType {
   messages: ChatMessage[]
   typingUsers: TypingUser[]
   lastEmoji: EmojiReaction | null
+  participants: Participant[]
+  participantCount: number
   sendMessage: (message: string) => void
   sendEmoji: (emoji: string) => void
   deleteMessage: (messageId: string) => void
@@ -29,6 +31,8 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([])
   const [lastEmoji, setLastEmoji] = useState<EmojiReaction | null>(null)
+  const [participants, setParticipants] = useState<Participant[]>([])
+  const [participantCount, setParticipantCount] = useState(0)
   const currentRoomRef = useRef<string | null>(null)
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -101,6 +105,11 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       setMessages(history)
     })
 
+    newSocket.on("participants-updated", (update: ParticipantsUpdate) => {
+      setParticipants(update.participants)
+      setParticipantCount(update.count)
+    })
+
     setSocket(newSocket)
 
     return () => {
@@ -115,8 +124,11 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       if (currentRoomRef.current === bookingId) return
 
       // Leave previous room if any
-      if (currentRoomRef.current) {
-        socket.emit("leave-room", currentRoomRef.current)
+      if (currentRoomRef.current && user) {
+        socket.emit("leave-room", {
+          bookingId: currentRoomRef.current,
+          userId: user.uid
+        })
       }
 
       currentRoomRef.current = bookingId
@@ -130,14 +142,19 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   )
 
   const leaveRoom = useCallback(() => {
-    if (!socket || !currentRoomRef.current) return
+    if (!socket || !currentRoomRef.current || !user) return
 
-    socket.emit("leave-room", currentRoomRef.current)
+    socket.emit("leave-room", {
+      bookingId: currentRoomRef.current,
+      userId: user.uid
+    })
     currentRoomRef.current = null
     setMessages([])
     setTypingUsers([])
     setLastEmoji(null)
-  }, [socket])
+    setParticipants([])
+    setParticipantCount(0)
+  }, [socket, user])
 
   const sendMessage = useCallback(
     (message: string) => {
@@ -216,6 +233,8 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         messages,
         typingUsers,
         lastEmoji,
+        participants,
+        participantCount,
         sendMessage,
         sendEmoji,
         deleteMessage,

@@ -57,6 +57,9 @@ export async function GET(
       startedAt: session.startedAt ? new Date(session.startedAt).toISOString() : null,
       participantCount: session.participantCount || 0,
       appId: process.env.AGORA_APP_ID,
+      // Include booking details for timer
+      scheduledAt: activeBooking.scheduledAt ? new Date(activeBooking.scheduledAt).toISOString() : null,
+      duration: activeBooking.duration || 60, // Default to 60 minutes if not set
     })
   } catch (error: any) {
     console.error("Error fetching tour stream info:", error)
