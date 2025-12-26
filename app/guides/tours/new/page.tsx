@@ -589,12 +589,18 @@ export default function CreateTourPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="details-language">Language</Label>
-                    <Input
-                      id="details-language"
+                    <Select
                       value={details.language}
-                      onChange={(e) => setDetails({ ...details, language: e.target.value })}
-                      placeholder="e.g., English, Italian"
-                    />
+                      onValueChange={(value) => setDetails({ ...details, language: value })}
+                    >
+                      <SelectTrigger id="details-language">
+                        <SelectValue placeholder="Select language" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="English">English</SelectItem>
+                        <SelectItem value="Italian">Italian</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2 md:col-span-2">
@@ -671,13 +677,43 @@ export default function CreateTourPage() {
                 {/* Max Participants */}
                 <div className="space-y-2">
                   <Label htmlFor="maxParticipants">Max Participants per Slot</Label>
-                  <Input
-                    id="maxParticipants"
-                    type="number"
-                    min="1"
-                    value={maxParticipants}
-                    onChange={(e) => setMaxParticipants(parseInt(e.target.value) || 50)}
-                  />
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <Input
+                        id="maxParticipants"
+                        type="number"
+                        min="1"
+                        max="1000"
+                        value={maxParticipants}
+                        onChange={(e) => setMaxParticipants(parseInt(e.target.value) || 50)}
+                        className="pr-12 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                        required
+                      />
+                      <div className="absolute right-0 top-0 bottom-0 flex flex-col border-l border-border rounded-r-md overflow-hidden">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-1/2 w-10 rounded-none hover:bg-muted/80 active:bg-muted"
+                          onClick={() => setMaxParticipants((prev) => Math.min(1000, prev + 1))}
+                          disabled={maxParticipants >= 1000}
+                        >
+                          <ChevronUp className="w-4 h-4" />
+                        </Button>
+                        <div className="border-t border-border" />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-1/2 w-10 rounded-none hover:bg-muted/80 active:bg-muted"
+                          onClick={() => setMaxParticipants((prev) => Math.max(1, prev - 1))}
+                          disabled={maxParticipants <= 1}
+                        >
+                          <ChevronDown className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Weekly Pattern */}
